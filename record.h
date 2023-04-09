@@ -1,6 +1,8 @@
 #if !defined(RECORD_H)
 #define RECORD_H
 
+#include <iostream>
+
 struct Record {
   unsigned int id;
   char name[70];
@@ -17,5 +19,9 @@ public:
   Record(const Record&);
   Record& operator=(const Record&);
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Record& r) {
+  return os << r.id << ", " << r.name << ", " << r.country_name << "\n"; //TODO lista campi incompleto
+}
 
 #endif // RECORD_H

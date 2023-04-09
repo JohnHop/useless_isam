@@ -7,6 +7,7 @@
 #include "lexer.h"
 #include "record.h"
 #include "params.h"
+#include "database.h"
 
 /**
  * Costituisce il parser. 
@@ -35,9 +36,7 @@ public:
   void expression();
   int id();
 
-  void execute(); //TODO: deve restituire un set di Record
-
-
+  std::vector<Record> execute(Database& database);
 };
 
 #endif // STATEMENT_H

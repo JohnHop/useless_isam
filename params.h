@@ -8,6 +8,6 @@
 #define DATABASE_FILENAME "../database.bin"  //TODO dipendenza da costante simbolica
 #define INDEX_FILENAME "../index.bin" //TODO dipendenza da costante simbolica
 
-using index_entry_t = std::pair<unsigned int, unsigned int>;
+using index_entry_t = std::pair<unsigned int, int>; //first: id, second: numero di pagina
 
 #endif // PARAMS_H

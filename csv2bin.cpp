@@ -6,6 +6,8 @@
 #include "record.h"
 #include "params.h"
 
+//TODO: alcune operazioni sugli stessi tipi possono essere racchiuse in una funzione (+ manutenibilità...)
+
 #define INPUT_FILENAME "../cities.csv"  //TODO il file deve essere passato come argomento
 #define OUTPUT_FILENAME "../database.bin" //TODO il file deve essere passato come argomento
 
@@ -23,10 +25,10 @@ int main(int argc, char const *argv[])
   Record record;
   size_t last_pos{0}; //posizione del precedente delimitatore
   size_t next_pos;  //posizione del successivo limitatore
-  const std::string delim{";"};
-  std::string token;  //singola colonna di una linea
+  const std::string delim{";"}; //* Carattere delimitatore
+  std::string token;  //singola elemento (colonna) di una riga
 
-  size_t count{0};  //numero di record scritti nel file di output
+  size_t count{0};  //Contatore di record scritti nel file di output
 
   while(input_file) {
     std::getline(input_file, row, '\n'); //estraggo una singola riga (record)
@@ -96,16 +98,21 @@ int main(int argc, char const *argv[])
     // << record.longitude << "\n";
     // std::cin.get();
 
-    const unsigned records_per_page{ PAGE_SIZE / sizeof(Record) };  //23
-    const unsigned overhead_byte{ PAGE_SIZE % sizeof(Record) }; //48 byte
-    const char overhead[overhead_byte]{0};
+    const unsigned int records_per_page{ PAGE_SIZE / sizeof(Record) };  //23
+    const unsigned int overhead_byte{ PAGE_SIZE % sizeof(Record) }; //48 byte
+    const char overhead_data[overhead_byte]{0}; //Per riempire la parte restante della pagina
 
-    output_file.write(reinterpret_cast<char*>(&record), sizeof(Record));  //! really bad
+    output_file.write(reinterpret_cast<char*>(&record), sizeof(Record));  //! da approfondire la correttezza
     count += 1;
 
     if( (count % records_per_page) == 0) {  //se abbiamo scritto un multiplo di 23
-      output_file.write(overhead, overhead_byte);
+      output_file.write(overhead_data, overhead_byte); //aggiungo l'overhead in modo da costituire una pagina intera
     }
+
+    /**
+     * In questo modo, l'ultima pagina, se non costuita da 23 Record, viene scritta solo parzialmente.
+     * Quindi attenzione quando bisogna prelevare...
+     **/
   }
 
   std::cout << "Scritte " << count << " righe di " << sizeof(Record) << " byte ciascuna.\n\

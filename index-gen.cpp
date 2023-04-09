@@ -11,31 +11,34 @@
 /**
  * Carica tutti i record del file in un vettore in modo che possa essere successivamente ordinato.
  * Viene restituito un rvalue del database caricato dal file. 
- * ATTENZIONE: una variazione nei tipi potrebbe provocare un errore di conversione!!! //FIXME
+ * ATTENZIONE: una variazione nei tipi potrebbe provocare un errore di conversione!!!
+ * *Nota: viene utilizzato long long int perché è lo stesso tipo di std::streamoff e così non abbiamo narrowing
+ * *static_cast<unsigned>(sizeof(Record)): non è necessario conservale la dimensione di Record in un long unsigned...
 */
 std::vector<Record> load_data(const std::string filename) {
   std::ifstream file{DATABASE_FILENAME, std::ios_base::in | std::ios_base::binary | std::ios_base::ate};
 
   if(!file.is_open()) {
     std::cerr << "Errore nell'apertura del file " << filename << "\n";
-    exit(EXIT_FAILURE); //FIXME: migliora la gestione degli errori
+    exit(EXIT_FAILURE); //TODO: migliora la gestione degli errori
   }
 
-  const long long int records_per_page{ PAGE_SIZE / sizeof(Record) };
-  const std::streamoff db_size{file.tellg()}; //dimensione in byte del file
-  const long long int page_count{ db_size / PAGE_SIZE };  //numero di pagine presenti nel file
-  const long long int remaining_bytes{ db_size % PAGE_SIZE };  //dimensione della pagina parziale
+  const unsigned int sizeof_record{sizeof(Record)};
+  const unsigned int records_per_page{ PAGE_SIZE / sizeof_record };  //numero di record che entrano in una pagina
+  const std::streamoff db_size{file.tellg()}; //dimensione in byte del file //TODO: restituisce -1 in caso di errore
+  const unsigned int page_count( db_size / PAGE_SIZE );  //numero di pagine presenti nel file (narrowing)
+  const unsigned remaining_bytes( db_size % PAGE_SIZE );  //dimensione della pagina parziale
 
-  long long int record_count{ (page_count * records_per_page) + (remaining_bytes / sizeof(Record)) };
+  unsigned int record_count{ (page_count * records_per_page) + (remaining_bytes / sizeof_record) }; //numero di record di cui è costituito il file
 
   file.seekg(0);  //Mi porto all'inizio del file
 
   std::vector<Record> database(record_count);
   Record record;
-  const long long int overhead_bytes = PAGE_SIZE % sizeof(Record); //calcolo i byte da saltare ogni 23 record
+  const long long int overhead_bytes = PAGE_SIZE % sizeof_record; //calcolo i byte da saltare ogni 23 record
 
   for(size_t i = 0; i < record_count; i += 1) { //carico tutti i record nel vettore
-    file.read(reinterpret_cast<char*>(&record), sizeof(Record));
+    file.read(reinterpret_cast<char*>(&record), sizeof_record);
     database[i] = record;
 
     if( ( (i+1) % records_per_page) == 0 ) {
@@ -46,8 +49,8 @@ std::vector<Record> load_data(const std::string filename) {
   return database;
 }
 
-void write_data(const std::vector<Record>& database, const std::string filename) {
-  std::ofstream file{DATABASE_FILENAME, std::ios_base::out | std::ios_base::binary};
+void write_data(const std::vector<Record>& database, const std::string& filename) {
+  std::ofstream file{filename, std::ios_base::out | std::ios_base::binary};
 
   if(!file.is_open()) {
     std::cerr << "Errore nell'apertura del file " << filename << "\n";
@@ -81,7 +84,7 @@ void generate_index(const std::vector<Record>& database, const std::string& file
 
   for(unsigned int i = 0; i < num_of_pages; i += 1) {
     index[i].first = database[i*records_per_page].id;
-    index[i].second = i*PAGE_SIZE;
+    index[i].second = static_cast<int>(i);  //! index[i].second = i*PAGE_SIZE;
   }
 
   //Scriviamo l'index in un file
@@ -89,7 +92,7 @@ void generate_index(const std::vector<Record>& database, const std::string& file
 
   if(!file.is_open()) {
     std::cerr << "Errore nell'apertura del file " << filename << "\n";
-    exit(EXIT_FAILURE); //FIXME: migliora la gestione degli errori
+    exit(EXIT_FAILURE); //TODO: migliora la gestione degli errori
   }
 
   for(const auto it: index) {
