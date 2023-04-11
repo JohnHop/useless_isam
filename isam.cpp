@@ -25,9 +25,8 @@ int main(int argc, char const *argv[])
       Statement statement{input};
       std::vector<Record> res = statement.execute(database);
 
-      //Visualizziamo i risultato
       if(res.size()) {
-        for(auto& e: res) {
+        for(auto& e: res) { //Visualizziamo i risultato
           std::cout << e;
         }
       }
