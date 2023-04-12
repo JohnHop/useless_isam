@@ -63,6 +63,8 @@ std::vector<Record> Statement::execute(Database& database) {
   else { //Type::SELECT_RANGE
     auto range = database.search(start_id, end_id);
 
+    //FIXME: controllo not found di #range
+
     std::vector<Record> results(range.first.diff(range.second) + 1);
 
     int i{0}; //TODO: puoi farlo meglio

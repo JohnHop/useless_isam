@@ -37,3 +37,15 @@ or
 
 ```sql
 isam > SELECT [start_id] - [end_id]
+```
+
+## Examples
+
+```
+isam > SELECT 40047
+40047, Gomishan, Iran. Islamic Rep. of
+```
+
+or
+
+```

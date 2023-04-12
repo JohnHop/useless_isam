@@ -3,16 +3,9 @@
 
 #include "params.h"
 #include "record.h"
+#include "page.h"
 
 #include <string>
-
-//FIXME: in caso di pagina parziale il numero di record non è lo stesso!
-struct Page {
-  static const size_t records_per_page{PAGE_SIZE/sizeof(Record)};
-
-  Record records[records_per_page];  //TODO: templatizza...
-  int num_page;
-};
 
 /**
  * Esegue gli accessi al file organizzato in pagine.
@@ -32,7 +25,7 @@ public:
   ~Pager();
 
 
-  const Page* get_page(const int); //restituisce una pagina //!: è meglio usare un unsigned int?
+  const Page* get_page(const int); //restituisce una pagina //? è meglio usare un unsigned int?
   size_t get_num_of_pages() const { return pages_size; };
 
   const int records_per_page{PAGE_SIZE/sizeof(Record)};
