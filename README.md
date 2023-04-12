@@ -49,3 +49,12 @@ isam > SELECT 40047
 or
 
 ```
+isam > SELECT 40000 - 50000
+40047, Gomishan, Iran. Islamic Rep. of
+41151, Pa'in-e Bazar-e Rudbar, Iran. Islamic Rep. of
+41210, Khorramdarreh, Iran. Islamic Rep. of
+41428, Padegan-e Manjil, Iran. Islamic Rep. of
+44439, Kavar, Iran. Islamic Rep. of
+49593, Yeed, Somalia
+49747, Xuddur, Somalia
+```
