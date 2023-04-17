@@ -16,26 +16,26 @@ Executable parameters are hard-coded in params.h.
 
 First, locate the dataset **cities.csv** and execute **csv2bin** on it in order to obtain a binary file **database.bin**
 
-```bash
+```
 $ > ./csv2bin
 ```
 
 After, execute **index-gen** on **database.bin** in order to obtain the **index.bin** file
 
-```bash
+```
 $ > ./index-gen
 ```
 
 Finally, it is possible to execute **isam** to explore the dataset.<br>
 Supported queries are single and range selection:
 
-```sql
+```
 isam > SELECT [id]
 ```
 
 or
 
-```sql
+```
 isam > SELECT [start_id] - [end_id]
 ```
 
