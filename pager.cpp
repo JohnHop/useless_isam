@@ -18,6 +18,17 @@ Pager::Pager(const std::string& f): filename{f}, pages{nullptr}, pages_size{0}, 
   pages = new Page*[pages_size]{nullptr};  //TODO: gestisci quando lancia
 }
 
+Pager::~Pager() {
+  if(pages) {
+    for(int i = 0; i < pages_size; i += 1) {
+      if(pages[i]) {
+        delete pages[i];
+      }
+    }
+    delete[] pages;
+  }
+}
+
 /**
  * Preleva una pagina dal file (se necessario), la mette nella cache e poi restituisce il suo puntatore.
  * Alternativamente restituisce un puntatore nullo se viene richiesta una pagina non esistente
@@ -47,15 +58,4 @@ const Page* Pager::get_page(const int num_page) {
   file.read( reinterpret_cast<char*>(pages[num_page]->records), sizeof(Record)*records_to_fetch);
 
   return pages[num_page];
-}
-
-Pager::~Pager() {
-  if(pages) {
-    for(int i = 0; i < pages_size; i += 1) {
-      if(pages[i]) {
-        delete[] pages[i]; 
-      }
-    }
-    delete[] pages;
-  }
 }

@@ -14,7 +14,6 @@ struct Record {
   char latitude[9];
   char longitude[9];
 
-public:
   Record(void);
   Record(const Record&);
   Record& operator=(const Record&);

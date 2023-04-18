@@ -1,17 +1,19 @@
-# Welcome to MkDocs
+# What is useless_isam ?
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+I was working on a C++ implementation of [db_tutorial](https://github.com/cstack/db_tutorial) made by [cstack](https://github.com/cstack) as a pet project for my portfolio when I started to get hardy time on the B+Tree implementation section. After learning about B-Tree and B+Tree, I was still struggling with indexing and persistence on files. So I decided to switch to something easier and casually bumped into ISAM indexing.
 
-## Commands
+## Why useless?
+Because with this project you can't insert new records. So it's a read only database. Just basic search queries and nothing else.<br>
+Also, record columns are hard-coded within the source code. So neither CREAT TABLE statement type for column definition.
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+Quite useless, don't you agree?
 
-## Project layout
+## Well, maybe not so much useless...
+I like writing code and I am a C++ lover, so this small and simple project is ideal to put some things I learned until now in practice.<br>
+Goal, I hope, is to produce a clean and well-written code and not something like _if it compile and works then it's fine, no matter how it is made_.
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+Some keywords covered by this project are
+
+> `databases` `isam` `indexing` `parsing` `lexer` `paging` `file manipulation` `paging` `caching` `cmake` `tokens` `record` `statement` 
+
+and I hope there will be more in the future.
