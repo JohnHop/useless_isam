@@ -6,7 +6,7 @@
 struct Record {
   int id;
   char name[70];
-  char country_code[2];
+  char country_code[3];
   char country_name[39];
   int population;
   int dem;

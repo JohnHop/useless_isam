@@ -6,39 +6,24 @@
 #include "record.h"
 #include "params.h"
 
-/**
- * Preleva e salva una colonna del tipo int dal file
-*/
-void get(const std::string& row, const std::string delim, size_t& last_pos, size_t& next_pos, int& data) {
-  std::string token;
+void extract(const std::string& from, int& to) {
+  to = strtoul(from.c_str(), nullptr, 10);
+}
 
-  next_pos = row.find(delim, last_pos);
-  token = row.substr(last_pos, next_pos-last_pos);
-  data = strtoul(token.c_str(), nullptr, 10);
-  last_pos = next_pos + 1;
+void extract(const std::string& from, char* to) {
+  strcpy(to, from.c_str());
 }
 
 /**
- * Preleva e salva una colonna del tipo stringa caratteri a dimensione variabile
+ * Preleva e salva una colonna del tipo dal file
 */
-void get(const std::string& row, const std::string delim, size_t& last_pos, size_t& next_pos, char* data) {
-  std::string token;
+template<typename T>
+void get(const std::string& row, const std::string delim, size_t& last_pos, size_t& next_pos, T& column) {
+  std::string attr;
 
   next_pos = row.find(delim, last_pos);
-  token = row.substr(last_pos, next_pos-last_pos);
-  strcpy(data, token.c_str());
-  last_pos = next_pos + 1;
-}
-
-/**
- * Preleva e salva una colonna del tipo stringa caratteri a dimensione fissa
-*/
-void get(const std::string& row, const std::string delim, size_t& last_pos, size_t& next_pos, char* data, const size_t nbyte) {
-  std::string token;
-
-  next_pos = row.find(delim, last_pos);
-  token = row.substr(last_pos, next_pos-last_pos);
-  strncpy(data, token.c_str(), nbyte);
+  attr = row.substr(last_pos, next_pos-last_pos);
+  extract(attr, column);
   last_pos = next_pos + 1;
 }
 
@@ -47,7 +32,7 @@ int main(int argc, char const *argv[])
   std::ifstream input_file{DATASET_FILENAME};
   std::ofstream output_file{DATABASE_FILENAME, std::ios_base::out | std::ios_base::binary};
 
-  if(!input_file.is_open() || !output_file.is_open()) {
+  if(!input_file || !output_file) {
     std::clog << "Error opening " << DATASET_FILENAME << " or " DATABASE_FILENAME << "\n";
     return EXIT_FAILURE;
   }
@@ -61,16 +46,15 @@ int main(int argc, char const *argv[])
   size_t last_pos{0}; //posizione del precedente delimitatore
   size_t next_pos;  //posizione del successivo limitatore
   const std::string delim{";"}; //* Carattere delimitatore
-  std::string token;  //singola elemento (colonna) di una riga
 
-  const unsigned int records_per_page{ PAGE_SIZE / sizeof(Record) };  //23
-  const unsigned int overhead_byte{ PAGE_SIZE % sizeof(Record) }; //48 byte
-  const char overhead_data[overhead_byte]{0}; //Per riempire la parte restante della pagina
+  const unsigned records_per_page{ PAGE_SIZE / sizeof(Record) };  //23
+  const unsigned overhead_byte_length{ PAGE_SIZE % sizeof(Record) }; //48 byte
+  const char overhead_data[overhead_byte_length]{0}; //Per riempire la parte restante della pagina
 
-  size_t count{0};  //Record counter
+  size_t count{0};  //Record reads counter
 
   while(!input_file.eof()) {
-    std::getline(input_file, row, '\n'); //estraggo una singola riga (record)
+    std::getline(input_file, row, '\n'); //extracts a row
 
     if(input_file.fail()) {
       std::clog << "Error occurred while reading from " << DATASET_FILENAME << "\n";
@@ -84,7 +68,7 @@ int main(int argc, char const *argv[])
     get(row, delim, last_pos, next_pos, record.name);
 
     //3. ottengo la terza colonna: country_code (char[2]) a dimensione fissa
-    get(row, delim, last_pos, next_pos, record.country_code, 2);
+    get(row, delim, last_pos, next_pos, record.country_code);
 
     //4. ottengo la quarta colonna: country_name (char[64]) a dimensione variabile
     get(row, delim, last_pos, next_pos, record.country_name);
@@ -106,11 +90,11 @@ int main(int argc, char const *argv[])
 
     //Writing data to output_file
     try {
-      output_file.write(reinterpret_cast<char*>(&record), sizeof(Record));  //TODO: intercetta eventuali errori
+      output_file.write(reinterpret_cast<char*>(&record), sizeof(Record));
       count += 1;
 
       if( (count % records_per_page) == 0) {  //se abbiamo scritto un multiplo di records_per_page (23)
-        output_file.write(overhead_data, overhead_byte); //aggiungo l'overhead in modo da costituire una pagina intera  //TODO: intercetta eventuali errori
+        output_file.write(overhead_data, overhead_byte_length); //aggiungo l'overhead in modo da costituire una pagina intera
       }
     } catch(std::ofstream::failure& e) {
       std::clog << "Error occurred while writing on " << DATABASE_FILENAME << ": " << e.what() << "\n";
