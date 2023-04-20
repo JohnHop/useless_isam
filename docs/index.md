@@ -14,6 +14,36 @@ Goal, I hope, is to produce a clean and well-written code and not something like
 
 Some keywords covered by this project are
 
-> `databases` `isam` `indexing` `parsing` `lexer` `paging` `file manipulation` `paging` `caching` `cmake` `tokens` `record` `statement` 
+> `database` `isam` `indexing` `parsing` `lexer` `paging` `file manipulation` `paging` `caching` `cmake` `tokens` `record` `exception handling`
 
 and I hope there will be more in the future.
+
+## Overvew
+
+ISAM is used to fast retrieve data from a database. So I decided to use a binary file for storing the dataset because it allows random access to records. Also, we need a dataset to populate our database. And don't forget that the database must be sorted in order to create an index file and support range selections. Let's put in order...
+
+1. generate a database binary file from a dataset
+2. sort the database binary file by a column
+3. generate the index binary file
+
+So I decided to archieve these points with three separate executables.
+
+### csv2bin
+
+The program will use a textual dataset to build a _database.bin_ file consists of a collection of fixed length records. Nothing more.<br>
+More precisely, records are grouped in pages and, if needed, some padding will be added to the end of each page.
+
+### index-gen
+
+Then the database file will be sorted by a column and rewritten. Based upont it, the program will build a sorted index binary file where each record will represent all records belonging to a single page.<br>
+Actually, only single level indexing is supoorted.
+
+### isam
+
+Finally, this executable will load the index and database files for support search queries and range selections.
+
+## References and useful links
+Connor Stack. _db_tutorial_<br>
+Bjarne Stroustrup. _The C++ Programming Language (4th edition)_<br>
+Grust, Torsten (Summer 2013). [_Tree-Structured Indexing: ISAM and B+-trees_](https://web.archive.org/web/20201031195459/https://db.inf.uni-tuebingen.de/staticfiles/teaching/ss13/db2/db2-04-1up.pdf)<br>
+Compiler Explorer: https://godbolt.org/

@@ -1,4 +1,10 @@
 site_name: useless_isam
 site_url: https://johnhop.github.io/useless_isam
+repo_url: https://github.com/JohnHop/useless_isam
+repo_name: GitHub
 
 theme: readthedocs
+
+markdown_extensions:
+    - extra
+    - admonition

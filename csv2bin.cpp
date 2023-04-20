@@ -7,9 +7,9 @@
 #include "params.h"
 
 /**
- * Preleva e salva una colonna del tipo unsigned int dal file
+ * Preleva e salva una colonna del tipo int dal file
 */
-void get(const std::string& row, const std::string delim, size_t& last_pos, size_t& next_pos, unsigned int& data) {
+void get(const std::string& row, const std::string delim, size_t& last_pos, size_t& next_pos, int& data) {
   std::string token;
 
   next_pos = row.find(delim, last_pos);
@@ -104,7 +104,7 @@ int main(int argc, char const *argv[])
     //9. ottengo la nona colonna: longitude (char[9]) a lunghezza variabile
     get(row, delim, last_pos, next_pos, record.longitude);
 
-    //Writing data on output_file
+    //Writing data to output_file
     try {
       output_file.write(reinterpret_cast<char*>(&record), sizeof(Record));  //TODO: intercetta eventuali errori
       count += 1;
