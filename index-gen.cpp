@@ -11,21 +11,24 @@
 /**
  * Carica tutti i record del file in un vettore in modo che possa essere successivamente ordinato.
  * Viene restituito un rvalue del database caricato dal file. 
- * ATTENZIONE: una variazione nei tipi potrebbe provocare un errore di conversione!!!
- * *Nota: viene utilizzato long long int perché è lo stesso tipo di std::streamoff e così non abbiamo narrowing
- * *static_cast<unsigned>(sizeof(Record)): non è necessario conservale la dimensione di Record in un long unsigned...
 */
-std::vector<Record> load_data(const std::string filename) {
+std::vector<Record> load_data(const std::string& filename) {
   std::ifstream file{DATABASE_FILENAME, std::ios_base::in | std::ios_base::binary | std::ios_base::ate};
 
-  if(!file.is_open()) {
-    std::cerr << "Errore nell'apertura del file " << filename << "\n";
-    exit(EXIT_FAILURE); //TODO: migliora la gestione degli errori
+  if(!file) {
+    std::clog << "Error opening file " << filename << "\n";
+    exit(EXIT_FAILURE);
+  }
+
+  const std::streamoff db_size{file.tellg()}; //dimensione in byte del file
+
+  if(db_size == -1) {
+    std::clog << "Error getting file size of " << filename << "\n";
+    exit(EXIT_FAILURE);
   }
 
   const unsigned int sizeof_record{sizeof(Record)};
   const unsigned int records_per_page{ PAGE_SIZE / sizeof_record };  //numero di record che entrano in una pagina
-  const std::streamoff db_size{file.tellg()}; //dimensione in byte del file //TODO: restituisce -1 in caso di errore
   const unsigned int page_count( db_size / PAGE_SIZE );  //numero di pagine presenti nel file (narrowing)
   const unsigned remaining_bytes( db_size % PAGE_SIZE );  //dimensione della pagina parziale
 
@@ -34,16 +37,21 @@ std::vector<Record> load_data(const std::string filename) {
   file.seekg(0);  //Mi porto all'inizio del file
 
   std::vector<Record> database(record_count);
-  Record record;
   const long long int overhead_bytes = PAGE_SIZE % sizeof_record; //calcolo i byte da saltare ogni 23 record
 
-  for(size_t i = 0; i < record_count; i += 1) { //carico tutti i record nel vettore
-    file.read(reinterpret_cast<char*>(&record), sizeof_record);
-    database[i] = record;
+  file.exceptions(std::ofstream::failbit);  //Ci assicuriamo che siano attive le eccezioni
 
-    if( ( (i+1) % records_per_page) == 0 ) {
-      file.seekg(overhead_bytes, std::ios_base::cur); //salto i byte aggiungi all'overhead
+  try {
+    for(size_t i = 0; i < record_count; i += 1) { //carico tutti i record nel vettore
+      file.read(reinterpret_cast<char*>(&database[i]), sizeof_record);
+
+      if( ( (i+1) % records_per_page) == 0 ) {
+        file.seekg(overhead_bytes, std::ios_base::cur); //salto i byte aggiungi all'overhead
+      }
     }
+  } catch(std::ifstream::failure& e) {
+    std::clog << "Error loading records from " << filename << ": " << e.what() << "\n";
+    exit(EXIT_FAILURE);
   }
 
   return database;
@@ -52,10 +60,12 @@ std::vector<Record> load_data(const std::string filename) {
 void write_data(const std::vector<Record>& database, const std::string& filename) {
   std::ofstream file{filename, std::ios_base::out | std::ios_base::binary};
 
-  if(!file.is_open()) {
-    std::cerr << "Errore nell'apertura del file " << filename << "\n";
-    exit(EXIT_FAILURE); //FIXME: migliora la gestione degli errori
+  if(!file) {
+    std::cerr << "Error opening file " << filename << "\n";
+    exit(EXIT_FAILURE);
   }
+
+  file.exceptions(std::ofstream::failbit);  //Ci assicuriamo che siano attive le eccezioni
 
   const size_t records_per_page{PAGE_SIZE / sizeof(Record)};  //Numero di record presenti in una pagina
   const size_t overhead{ PAGE_SIZE % sizeof(Record) };  //numero di byte necessari per completare una pagina
@@ -63,18 +73,23 @@ void write_data(const std::vector<Record>& database, const std::string& filename
 
   size_t count{0};  //numero di record scritti nel file
   for(const auto it: database) {
-    file.write(reinterpret_cast<const char*>(&it), sizeof(Record));
-    count += 1;
+    try {
+      file.write(reinterpret_cast<const char*>(&it), sizeof(Record));
+      count += 1;
 
-    if( (count % records_per_page) == 0) {  //ogni 23 pagine
-      file.write(padding, overhead);
+      if( (count % records_per_page) == 0) {  //ogni 23 pagine
+        file.write(padding, overhead);
+      }
+    } catch(std::ostream::failure& e) {
+      std::clog << "Error wrting " << filename << ": " << e.what() << "\n";
+      exit(EXIT_FAILURE);
     }
   }
 }
 
 void generate_index(const std::vector<Record>& database, const std::string& filename) {
-  const size_t records_per_page{ PAGE_SIZE / sizeof(Record) };  //23
-  size_t num_of_pages{ database.size() / records_per_page };
+  const unsigned records_per_page{ PAGE_SIZE / sizeof(Record) };  //23
+  std::size_t num_of_pages{ database.size() / records_per_page };
 
   if(database.size() % records_per_page) {  //se è presente una pagina parziale
     num_of_pages += 1;
@@ -82,21 +97,27 @@ void generate_index(const std::vector<Record>& database, const std::string& file
 
   std::vector<index_entry_t> index(num_of_pages);
 
-  for(unsigned int i = 0; i < num_of_pages; i += 1) {
-    index[i].first = database[i*records_per_page].id;
-    index[i].second = static_cast<int>(i);  //! index[i].second = i*PAGE_SIZE;
+  //Per ogni pagina prendiamo il primo record e lo salviamo nel vettore indice
+  for(int page = 0; page < num_of_pages; page += 1) {
+    index[page].first = database[page*records_per_page].id;
+    index[page].second = page;
   }
 
   //Scriviamo l'index in un file
   std::ofstream file{filename, std::ios_base::out | std::ios_base::binary};
 
-  if(!file.is_open()) {
-    std::cerr << "Errore nell'apertura del file " << filename << "\n";
-    exit(EXIT_FAILURE); //TODO: migliora la gestione degli errori
+  if(!file) {
+    std::cerr << "Error opening file " << filename << "\n";
+    exit(EXIT_FAILURE);
   }
 
   for(const auto it: index) {
-    file.write(reinterpret_cast<const char*>(&it), sizeof(index_entry_t));
+    try {
+      file.write(reinterpret_cast<const char*>(&it), sizeof(index_entry_t));
+    } catch(std::ofstream::failure& e) {
+      std::clog << "Error writing " << filename << ": " << e.what() << "\n";
+      exit(EXIT_FAILURE);
+    }
   }
 
   std::cout << "Indice scritto: " << num_of_pages << " elementi\n";
@@ -113,9 +134,9 @@ int main(int argc, char* argv[])
   );
 
   write_data(database, DATABASE_FILENAME);  //salviamo il dabase ordinato per la chiave scelta (organizzato in pagine)
-  std::cout << "Ordinamento eseguito con successo\n";
+  std::cout << "Sorting executed on " << DATABASE_FILENAME << "\n";
 
   generate_index(database, INDEX_FILENAME); //Realizziamo l'indice e lo scriviamo in un file
 
-  return 0;
+  return EXIT_SUCCESS;
 }

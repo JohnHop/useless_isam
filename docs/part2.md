@@ -83,7 +83,7 @@ void get(const std::string& row, const std::string delim, size_t& last_pos, size
 
   next_pos = row.find(delim, last_pos);
   attr = row.substr(last_pos, next_pos-last_pos);
-  extract(attr, column);  //<-- save attribute to record
+  extract(column, attr);  //<-- save attribute to record
   last_pos = next_pos + 1;
 }
 ```
@@ -91,11 +91,11 @@ void get(const std::string& row, const std::string delim, size_t& last_pos, size
 and then we take advantage of function overloading with
 
 ```C++
-void extract(const std::string& from, int& to) {
+void extract(int& to, const std::string& from) {
   to = strtoul(from.c_str(), nullptr, 10);
 }
 
-void extract(const std::string& from, char* to) {
+void extract(char* to, const std::string& from) {
   strcpy(to, from.c_str());
 }
 ```
@@ -144,8 +144,15 @@ try {
 }
 ```
 
-Anyway, this is not the best way to use exceptions. An exception is handled to recover from run-time errors and with the RAII technique[4].
+Anyway, this is not the best way to use exceptions. An exception is handled in order to recover from run-time errors and with the RAII technique[^4].
 
+## Results
+
+Well, not very encouraging.<br>
+We obtained a file of 25.091.696 byte aganist the original one of 10.395.430 byte: an increment of +141,37%. A bit too much...<br>
+We sacrificed a lot of memory space with access speed. This will be discussed later.
+
+Be careful that the last page is partial: this could be a problem when it's time to read it because the size is less than PAGE_SIZE = 4096 byte.
 
 [^1]: <https://en.cppreference.com/w/cpp/string/basic_string/find>
 [^2]: <https://en.cppreference.com/w/cpp/string/basic_string/substr>

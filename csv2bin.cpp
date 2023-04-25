@@ -6,11 +6,11 @@
 #include "record.h"
 #include "params.h"
 
-void extract(const std::string& from, int& to) {
+void extract(int& to, const std::string& from) {
   to = strtoul(from.c_str(), nullptr, 10);
 }
 
-void extract(const std::string& from, char* to) {
+void extract(char* to, const std::string& from) {
   strcpy(to, from.c_str());
 }
 
@@ -23,7 +23,7 @@ void get(const std::string& row, const std::string delim, size_t& last_pos, size
 
   next_pos = row.find(delim, last_pos);
   attr = row.substr(last_pos, next_pos-last_pos);
-  extract(attr, column);
+  extract(column, attr);
   last_pos = next_pos + 1;
 }
 
@@ -61,22 +61,22 @@ int main(int argc, char const *argv[])
       return EXIT_FAILURE;
     }
     
-    //1. ottengo la prima colonna: id (unsigned int)
+    //1. ottengo la prima colonna: id (int)
     get(row, delim, last_pos, next_pos, record.id);
 
     //2. ottengo la seconda colonna: name (char[64]) a dimensione variabile
     get(row, delim, last_pos, next_pos, record.name);
 
-    //3. ottengo la terza colonna: country_code (char[2]) a dimensione fissa
+    //3. ottengo la terza colonna: country_code (char[3]) a dimensione fissa
     get(row, delim, last_pos, next_pos, record.country_code);
 
     //4. ottengo la quarta colonna: country_name (char[64]) a dimensione variabile
     get(row, delim, last_pos, next_pos, record.country_name);
 
-    //5. ottengo la quinta colonna: population (unsigned int)
+    //5. ottengo la quinta colonna: population (int)
     get(row, delim, last_pos, next_pos, record.population);
 
-    //6. ottengo la sesta colonna: DIgital Elevation Model (unsigned int)
+    //6. ottengo la sesta colonna: DIgital Elevation Model (int)
     get(row, delim, last_pos, next_pos, record.dem);
 
     //7. ottengo la settima colonna: timezone (char[64]) a dimensione variabile
