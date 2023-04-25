@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://johnhop.github.io/useless_isam/part1/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Part 1 - useless_isam</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Part 1";
+        var mkdocs_page_input_path = "part1.md";
+        var mkdocs_page_url = "/useless_isam/part1/";
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> useless_isam
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">What is useless_isam ?</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Part 1</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#the-dataset">The dataset</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#recordh">record.h</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../part2/">Part 2</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../part3/">Part 3</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">useless_isam</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>Part 1</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/JohnHop/useless_isam/edit/master/docs/part1.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="part-1">Part 1</h1>
+<h2 id="the-dataset">The dataset</h2>
+<p>First thing to do is to select a dataset and, in case, adapt it for our purpose.</p>
+<p>After thinking a little about it, I endend up with a banal <em>world cities</em> dataset. I downloaded it somewhere on the net (don't remember) and made some adjustments like columns removal and representation edits.</p>
+<p>The <em>cities.csv</em> dataset consists of 140.895 rows separated by newline. Each row consists of 9 columns separated by semicolon. In dept</p>
+<table>
+<thead>
+<tr>
+<th align="center"><strong>Position</strong></th>
+<th align="center"><strong>Name</strong></th>
+<th align="center"><strong>Type</strong></th>
+<th align="center"><strong>Min/max/length</strong></th>
+<th align="center"><strong>C++ type</strong></th>
+<th align="center"><strong>C++ size</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">1</td>
+<td align="center">Geoname ID</td>
+<td align="center">Positive integer</td>
+<td align="center">max: 12.514.312</td>
+<td align="center">int</td>
+<td align="center">4</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">ASCII Name</td>
+<td align="center">String</td>
+<td align="center">max length: 69</td>
+<td align="center">char[70]</td>
+<td align="center">70</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">Country Code</td>
+<td align="center">2 character string</td>
+<td align="center">fixed length: 2</td>
+<td align="center">char[3]</td>
+<td align="center">3</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td align="center">Country Name</td>
+<td align="center">String</td>
+<td align="center">max length: 38</td>
+<td align="center">char[39]</td>
+<td align="center">39</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td align="center">Population</td>
+<td align="center">Positive integer</td>
+<td align="center">max: 22.315.474</td>
+<td align="center">int</td>
+<td align="center">4</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td align="center">DEM</td>
+<td align="center">Signed integer</td>
+<td align="center">[-9.999, 5.622]</td>
+<td align="center">int</td>
+<td align="center">4</td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td align="center">Timezone</td>
+<td align="center">String</td>
+<td align="center">max length: 30</td>
+<td align="center">char[31]</td>
+<td align="center">31</td>
+</tr>
+<tr>
+<td align="center">8</td>
+<td align="center">Latitude</td>
+<td align="center">String</td>
+<td align="center">max length: 8</td>
+<td align="center">char[9]</td>
+<td align="center">9</td>
+</tr>
+<tr>
+<td align="center">9</td>
+<td align="center">Longitude</td>
+<td align="center">String</td>
+<td align="center">max length: 8</td>
+<td align="center">char[9]</td>
+<td align="center">9</td>
+</tr>
+<tr>
+<td align="center">Total</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"><strong><em>173 bytes</em></strong></td>
+</tr>
+</tbody>
+</table>
+<p>Instead of storing a positive integer to a <code>unsigned</code> variable, we can safely use a <code>int</code> type beacause<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup> <code>INT_MAX = 2.14.748.364</code> (on my machine) is less than the max possible value for <strong>Geoname ID</strong> and <strong>Population</strong> attributes.</p>
+<p>You may think that the total size of a row is 173 bytes but you can't be sure until you check the output of <code>sizeof()</code> operator. Let's use <a href="https://godbolt.org/">Compiler Explorer</a> (using x86-64 gcc 12.2)</p>
+<pre><code class="language-C++">#include &lt;iostream&gt;
+
+struct Record {
+  int id;
+  char name[70];
+  char country_code[3];
+  char country_name[39];
+  int population;
+  int dem;
+  char timezone[31];
+  char latitude[9];
+  char longitude[9];
+};
+
+int main()
+{
+  std::cout &lt;&lt; sizeof(Record) &lt;&lt; &quot;\n&quot;;
+}
+</code></pre>
+<p>Output:</p>
+<pre><code>Program returned: 0
+Program stdout
+176
+</code></pre>
+<p>Why <code>sizeof(Record)</code> returns 176?<br>
+According to Stroustrup<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup>:</p>
+<blockquote>
+<p>An object doesn’t just need enough storage to hold its representation. In addition, on some machine architectures, the bytes used to hold it must have proper alignment for the hardware to access it efficiently (or in extreme cases to access it at all). For example, a 4-byte <strong>int</strong> often has to be aligned on a word (4-byte) boundary, and sometimes an 8-byte <strong>double</strong> has to be aligned on a word (8-byte) boundary. Of course, this is all very implementation specific, and for most programmers
+completely implicit. You can write good C++ code for decades without needing to be explicit about alignment. Where alignment most often becomes visible is in object layouts: sometimes <strong>struct</strong>s contain ‘‘holes’’ to improve alignment (§8.2.1).</p>
+</blockquote>
+<p>The sum of a <code>struct</code> (or <code>class</code>) attribute members is't always equal to the in-memory size of due to alignment optimizations that are machine-dependent. So you have to check out the previouse code with your compiler.</p>
+<p>Also, even though we are using fundamental types, their size are still machine-dependent<sup id="fnref:3"><a class="footnote-ref" href="#fn:3">3</a></sup>. In fact:</p>
+<blockquote>
+<p>Some of the aspects of C++’s fundamental types, such as the size of an <strong>int</strong>, are implementation-defined.</p>
+<p>Similarly, the <strong>int</strong> type is supposed to be chosen to be the most suitable for holding and manipulating integers on a given computer; it is typically a 4-byte (32-bit) word. It is unwise to assume more. For example, there are machines with 32-bit <strong>char</strong>s.</p>
+</blockquote>
+<p>This is interesting but also quite problematic. You may experience different sizes. If we want to be strict, we should use <code>int32_t</code> instead of <code>int</code> (including  the <code>&lt;cstdint&gt;</code> header) and <code>char8_t</code> instead of <code>char</code> (using the <code>-std=c++20</code> compiler flag). But this problem will not be addressed now. Since most systems are similar to my machine (a typical laptop with Intel cpu) we will assume (wrongly!) that data types and sizes are those point out in the previous table.</p>
+<h2 id="recordh">record.h</h2>
+<p>Now we can discuss some code. Let's take a look at <a href="https://github.com/JohnHop/useless_isam/blob/main/record.h">record.h</a></p>
+<pre><code class="language-C++">struct Record {
+  int id;
+  char name[70];
+  char country_code[3];
+  char country_name[39];
+  int population;
+  int dem;
+  char timezone[31];
+  char latitude[9];
+  char longitude[9];
+
+  Record() = default;
+  Record(const Record&amp;);
+  Record&amp; operator=(const Record&amp;);
+};
+</code></pre>
+<p>Surely we need a <strong>copy constructor</strong> and an <strong>assignent operator</strong>. Default copy costructor will copy variables and pointers and this would be really bad. In this example, the assignment operator is almost identical to copy constructor because the <strong>struct</strong> does not holds resource like dynamic memory.</p>
+<pre><code class="language-C++">Record::Record(const Record&amp; copy):
+  id{copy.id},
+  population{copy.population},
+  dem{copy.dem}
+{
+  strcpy(name, copy.name);
+  strcpy(country_code, copy.country_code);
+  strcpy(country_name, copy.country_name);
+  strcpy(timezone, copy.timezone);
+  strcpy(latitude, copy.latitude);
+  strcpy(longitude, copy.longitude);
+}
+
+Record&amp; Record::operator=(const Record&amp; copy) {
+  if(this != &amp;copy) { //Protection againts self-assignment
+    id = copy.id;
+    strcpy(name, copy.name);
+    strcpy(country_code, copy.country_code);
+    strcpy(country_name, copy.country_name);
+    population = copy.population;
+    dem = copy.dem;
+    strcpy(timezone, copy.timezone);
+    strcpy(latitude, copy.latitude);
+    strcpy(longitude, copy.longitude);
+  }
+
+  return *this;
+}
+</code></pre>
+<p>No need to define a custom <strong>default constructor</strong>. The one generated by the compiler is fine. But since we defined a custom copy constructor, the generation of default constructor is suppressed. So we need to get it back using <code>=default</code>. Remember that you can possibly initialize the <strong>struct</strong> using the <code>{}</code> notation.<br>
+A summary about default operations generation rules can be found at the <a href="https://mariusbancila.ro/blog/2018/07/26/cpp-special-member-function-rules/">Marius Bancila's Blog</a>.</p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p><a href="https://en.cppreference.com/w/cpp/types/climits">https://en.cppreference.com/w/cpp/types/climits</a>&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>from The C++ Programming Language, 4th edition, §6.2.9&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:3">
+<p>from The C++ Programming Language, 4th edition, §6.2.8&#160;<a class="footnote-backref" href="#fnref:3" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href=".." class="btn btn-neutral float-left" title="What is useless_isam ?"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../part2/" class="btn btn-neutral float-right" title="Part 2">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/JohnHop/useless_isam" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../part2/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

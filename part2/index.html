@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://johnhop.github.io/useless_isam/part2/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Part 2 - useless_isam</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Part 2";
+        var mkdocs_page_input_path = "part2.md";
+        var mkdocs_page_url = "/useless_isam/part2/";
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> useless_isam
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">What is useless_isam ?</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../part1/">Part 1</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Part 2</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#organization-of-database-file">Organization of database file</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#csv2bin">csv2bin</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#extracting-attributes-from-a-row">Extracting attributes from a row</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#error-handling">Error handling</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#results">Results</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../part3/">Part 3</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">useless_isam</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>Part 2</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/JohnHop/useless_isam/edit/master/docs/part2.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="part-2">Part 2</h1>
+<p>We need to take the csv dataset <em>cities.csv</em> as input and generate a binary file. We should call it <em>databse.bin</em>. Next, we will use this one with <strong>index-gen</strong> executable in order to generate an index binary file <em>index.bin</em>. For now, it's bettere to save to a file all those filenames. Let's call it <em><strong>params.h</strong></em>:</p>
+<pre><code class="language-C++">#define DATASET_FILENAME &quot;../cities.csv&quot;
+#define DATABASE_FILENAME &quot;../database.bin&quot;
+#define INDEX_FILENAME &quot;../index.bin&quot;
+</code></pre>
+<p>I am using CMake with Visual Studio Code. In doing so, it will be faster to compile and execute the code during the development.</p>
+<h2 id="organization-of-database-file">Organization of database file</h2>
+<p>We would read all records from <em>cities.csv</em> and write them to <em>database.bin</em> like a simply collection of <strong>Record</strong>s. But we want to take advantage of <strong>paging</strong> to improve performance. This will introduce just a bit of complexity. First, add to <em><strong>params.h</strong></em> the line</p>
+<pre><code class="language-C++">#define PAGE_SIZE 4096
+</code></pre>
+<p>This is usually the page size in most systems.<br>
+So, if sizeof(Record) = 176 bytes, and PAGE_SIZE is 4096, each paga will contains <strong>PAGE_SIZE / sizeof(Record) = 23</strong> records with <strong>PAGE_SIZE % sizeof(Record) = 48</strong> overhead byte remaining. </p>
+<h2 id="csv2bin">csv2bin</h2>
+<p>The source <em><strong>csv2bin.cpp</strong></em> simply reads each row from <em>DATASET_FILENAME</em> associated input stream, save it in a <strong>Record</strong> variable and append it to <em>DATABASE_FILENAME</em> associated output stream. Each 23 reads we have to write 48 byte to finish a page so</p>
+<pre><code class="language-C++">const unsigned records_per_page{ PAGE_SIZE / sizeof(Record) };  //23
+const unsigned overhead_byte_length{ PAGE_SIZE % sizeof(Record) }; //48 byte
+const char overhead_data[overhead_byte_length]{0};
+
+size_t count{0};  //Record reads counter
+
+while(!input_file.eof()) {
+  std::getline(input_file, row, '\n'); //extracts a row
+
+  /**
+   * Save a row/line to Record variable
+  */
+
+  output_file.write(reinterpret_cast&lt;char*&gt;(&amp;record), sizeof(Record));
+  count += 1;
+
+  if( (count % records_per_page) == 0) {  //each 23 reads
+    output_file.write(overhead_data, overhead_byte_length); //finish a page
+  }
+} //end while-loop
+</code></pre>
+<p>And this is the core idea.</p>
+<h3 id="extracting-attributes-from-a-row">Extracting attributes from a row</h3>
+<p>Each column is separate by a <code>;</code> delimiter and we are storing an entire row to a std::string class type. So let's take advantage from the C++ standard library using <code>find()</code><sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup> and <code>substr()</code><sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup> methods.</p>
+<p>We could do something like this for <strong>int</strong> type</p>
+<pre><code class="language-C++">std::string attr;
+
+next_pos = row.find(delim, last_pos);
+attr = row.substr(last_pos, next_pos-last_pos);
+column = strtoul(attr.c_str(), nullptr, 10);
+last_pos = next_pos + 1;
+</code></pre>
+<p>where <em>column</em> is the attribute extracted and converted to the appropriate type. Same for a null-terminated <strong>char array</strong></p>
+<pre><code class="language-C++">next_pos = row.find(delim, last_pos);
+attr = row.substr(last_pos, next_pos-last_pos);
+strcpy(column, attr.c_str());
+last_pos = next_pos + 1;
+</code></pre>
+<p>Instead of repeating these instructions group 9 times inside the <code>main()</code>, we could use functions, overloading and template to improve the code quality, maintainability and readability. First, the two versions only differs for the <em>extracting</em> instruction, so</p>
+<pre><code class="language-C++">template&lt;typename T&gt;
+void get(const std::string&amp; row, const std::string delim, size_t&amp; last_pos, size_t&amp; next_pos, T&amp; column) {
+  std::string attr;
+
+  next_pos = row.find(delim, last_pos);
+  attr = row.substr(last_pos, next_pos-last_pos);
+  extract(column, attr);  //&lt;-- save attribute to record
+  last_pos = next_pos + 1;
+}
+</code></pre>
+<p>and then we take advantage of function overloading with</p>
+<pre><code class="language-C++">void extract(int&amp; to, const std::string&amp; from) {
+  to = strtoul(from.c_str(), nullptr, 10);
+}
+
+void extract(char* to, const std::string&amp; from) {
+  strcpy(to, from.c_str());
+}
+</code></pre>
+<h3 id="error-handling">Error handling</h3>
+<p>It can be archieved by catching exceptions or traditional error handling.<br>
+First, we can avoid exceptions for the input stream and be sure to enable them for the output stream</p>
+<pre><code class="language-C++">input_file.exceptions(std::ifstream::goodbit);
+output_file.exceptions(std::ofstream::failbit);
+</code></pre>
+<p>For example, if a stream fails to open, it will be in the bad state. You can check it with</p>
+<pre><code class="language-C++">if(!input_file || !output_file) {
+  std::clog &lt;&lt; &quot;Error opening &quot; &lt;&lt; DATASET_FILENAME &lt;&lt; &quot; or &quot; DATABASE_FILENAME &lt;&lt; &quot;\n&quot;;
+  return EXIT_FAILURE;
+}
+</code></pre>
+<p>We had to check every time if there are reading errors after calling <code>getline()</code> with<sup id="fnref:3"><a class="footnote-ref" href="#fn:3">3</a></sup></p>
+<pre><code class="language-C++">if(input_file.fail()) {
+  std::clog &lt;&lt; &quot;Error occurred while reading from &quot; &lt;&lt; DATASET_FILENAME &lt;&lt; &quot;\n&quot;;
+  return EXIT_FAILURE;
+}
+</code></pre>
+<p>Finally, write instructions to the output file are near so we can group them inside a <strong>try</strong> block</p>
+<pre><code class="language-C++">try {
+  output_file.write(reinterpret_cast&lt;char*&gt;(&amp;record), sizeof(Record));
+  count += 1;
+
+  if( (count % records_per_page) == 0) {
+    output_file.write(overhead_data, overhead_byte_length);
+  }
+} catch(std::ofstream::failure&amp; e) {
+  std::clog &lt;&lt; &quot;Error occurred while writing on &quot; &lt;&lt; DATABASE_FILENAME &lt;&lt; &quot;: &quot; &lt;&lt; e.what() &lt;&lt; &quot;\n&quot;;
+  return EXIT_FAILURE;
+}
+</code></pre>
+<p>Anyway, this is not the best way to use exceptions. An exception is handled in order to recover from run-time errors and with the RAII technique<sup id="fnref:4"><a class="footnote-ref" href="#fn:4">4</a></sup>.</p>
+<h2 id="results">Results</h2>
+<p>Well, not very encouraging.<br>
+We obtained a file of 25.091.696 byte aganist the original one of 10.395.430 byte: an increment of +141,37%. A bit too much...<br>
+We sacrificed a lot of memory space with access speed. This will be discussed later.</p>
+<p>Be careful that the last page is partial: this could be a problem when it's time to read it because the size is less than PAGE_SIZE = 4096 byte.</p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p><a href="https://en.cppreference.com/w/cpp/string/basic_string/find">https://en.cppreference.com/w/cpp/string/basic_string/find</a>&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="https://en.cppreference.com/w/cpp/string/basic_string/substr">https://en.cppreference.com/w/cpp/string/basic_string/substr</a>&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:3">
+<p><a href="https://en.cppreference.com/w/cpp/string/basic_string/getline">https://en.cppreference.com/w/cpp/string/basic_string/getline</a>&#160;<a class="footnote-backref" href="#fnref:3" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+<li id="fn:4">
+<p>Bjarne Stroustrup. The C++ Programming Language, 4th edition, §13.1&#160;<a class="footnote-backref" href="#fnref:4" title="Jump back to footnote 4 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../part1/" class="btn btn-neutral float-left" title="Part 1"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../part3/" class="btn btn-neutral float-right" title="Part 3">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/JohnHop/useless_isam" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../part1/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../part3/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

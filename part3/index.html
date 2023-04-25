@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://johnhop.github.io/useless_isam/part3/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Part 3 - useless_isam</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Part 3";
+        var mkdocs_page_input_path = "part3.md";
+        var mkdocs_page_url = "/useless_isam/part3/";
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> useless_isam
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">What is useless_isam ?</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../part1/">Part 1</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../part2/">Part 2</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Part 3</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#getting-sorting-and-saving-data">Getting, sorting and saving data</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#load_data">load_data()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#about-narrowing-conversion">About narrowing conversion</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#sorting-and-writing-data">Sorting and writing data</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#generating-index-file">Generating index file</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">useless_isam</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>Part 3</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/JohnHop/useless_isam/edit/master/docs/part3.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="part-3">Part 3</h1>
+<p>Records stored in <em>database.bin</em> are not sorted by any column. So, it is just an agglomerate of Records with some padding, grouped by pages. Not very useful for our purpose.</p>
+<p>We need to to select a proper column as a primary key, let's say <strong>A</strong>, in order to have an <strong>A</strong>-sorted data file. Next step is to generate an index file so it can be used to access to index entry: it is an ordered pair (k<sub>i</sub>, p<sub>i</sub>) where k<sub>i</sub> is the minimal value inside the page p<sub>i</sub>, witch contains a certain number of Records. Since a Record is 176 byte long, and a page holds 23 Records, the key k<sub>i</sub> of page p<sub>i</sub> belonging to the Record with the A-column value is less than any other inside the same page and the next ones.</p>
+<p>You can found the code described in this section in <a href="https://github.com/JohnHop/useless_isam/blob/main/index-gen.cpp">index-gen.cpp</a>.</p>
+<h2 id="getting-sorting-and-saving-data">Getting, sorting and saving data</h2>
+<p>We need to</p>
+<ol>
+<li>Fetch all Records from the <em>database.bin</em> to a vector</li>
+<li>Sort them by a column</li>
+<li>Write the sorted vector to <em>database.bin</em></li>
+</ol>
+<p>Fortunally, we can take advantage of <code>std::vector</code> and <code>std::sort()</code> provided by the C++ Standard Library.</p>
+<h3 id="load_data">load_data()</h3>
+<p>The function declaration is</p>
+<pre><code class="language-C++">std::vector&lt;Record&gt; load_data(const std::string&amp; filename)
+</code></pre>
+<p>It will set up a <code>std::vector</code> with all Records loaded from the <em>database.bin</em> and will returns it. Quite simple.</p>
+<p>We need to know how many Records are presente inside the database. So we will open the file in binary / read mode with the <code>std::ios_base::ate</code> flag. Then, the <code>tellg()</code> method will returns the file byte size, say <strong>db_size</strong>.</p>
+<p>Since <code>PAGE_SIZE = 4096</code> and <code>sizeof_record = sizeof(Record)</code></p>
+<ul>
+<li>with <code>records_per_page = PAGE_SIZE / sizeof_record</code> provide the number of records in a single page</li>
+<li>with <code>page_count = db_size / PAGE_SIZE</code> provide get the number of pages<ul>
+<li><code>page_count * records_per_page</code> provide the number of records in the database</li>
+</ul>
+</li>
+<li>with <code>remaining_bytes = db_size % PAGE_SIZE</code> provide the remaing byte of the partial page<ul>
+<li><code>remaining_bytes / sizeof_record</code> provide the number of records in the last page</li>
+</ul>
+</li>
+</ul>
+<p>So the sum of records is</p>
+<pre><code class="language-C++">unsigned int record_count{ (page_count * records_per_page) + (remaining_bytes / sizeof_record) };
+</code></pre>
+<p>We will pass this value to <code>std::vector</code> constructor.</p>
+<h3 id="about-narrowing-conversion">About narrowing conversion</h3>
+<p>We want to avoid as much as possible implicit conversions that can lead to not only loss of data but also values falsification like assigning a -1 value to a unsigned variable by mistake. Compiler can warn you when and where a narrowing conversion occour and we had to take a closer look in those points. Bjarne debate abount implicit type conversion in The C++ Programming Language, ̀§10.5.</p>
+<pre><code class="language-C++">const std::streamoff db_size{file.tellg()};
+
+if(db_size == -1) {
+    std::clog &lt;&lt; &quot;Error getting file size of &quot; &lt;&lt; filename &lt;&lt; &quot;\n&quot;;
+    exit(EXIT_FAILURE);
+}
+</code></pre>
+<p><code>tellg()</code> returns a std::streampos, aka long long, so the return value will be stored in a same type variable. After checking if no failure accur, we can assume that is a positive value and go on.</p>
+<pre><code class="language-C++">const unsigned int sizeof_record{sizeof(Record)};
+</code></pre>
+<p>Compiler know that sizeof(Record) fits inside an unsigned int so it won't issue any narrowing conversion message.</p>
+<pre><code class="language-C++">const unsigned int records_per_page{ PAGE_SIZE / sizeof_record };
+</code></pre>
+<p>Almost the same for this.</p>
+<pre><code class="language-C++">const unsigned int page_count( db_size / PAGE_SIZE );
+const unsigned remaining_bytes( db_size % PAGE_SIZE );
+</code></pre>
+<p>In order to avoid narrowing conversion messages by compiler, we had to initialize the two variables without the {}-initializer notation. Fortunally, we already checked if <code>db_size</code> is positive so we can safety do this.</p>
+<p>The remainder of the function is quite self-explanatory.</p>
+<p>//TODO: talk about move semantics</p>
+<h2 id="sorting-and-writing-data">Sorting and writing data</h2>
+<p>We can take advantage of the standard library for sorting data with lambda expression<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>. In the main() function,</p>
+<pre><code class="language-C++">std::vector&lt;Record&gt; database{load_data(DATABASE_FILENAME)};
+
+std::sort(database.begin(), database.end(),
+  [](const Record&amp; a, const Record&amp; b) {
+    return a.id &lt; b.id;
+  }
+);
+</code></pre>
+<p>Writing data should not be a problematic.</p>
+<h2 id="generating-index-file">Generating index file</h2>
+<p>Same for the database, we will generate a std::vector of index entries e write it to a file <em>index.bin</em>.
+To represent a pair of (key, page), I decide to use the std::pair from the standard library. This class is a template, so we can save time putting</p>
+<pre><code class="language-C++">using index_entry_t = std::pair&lt;int, int&gt;;
+</code></pre>
+<p>in <strong>params.h</strong>. Setting up the index should not be so hard</p>
+<pre><code class="language-C++">std::vector&lt;index_entry_t&gt; index(num_of_pages);
+
+for(int page = 0; page &lt; num_of_pages; page += 1) {
+  index[page].first = database[page*records_per_page].id;
+  index[page].second = page;
+}
+</code></pre>
+<p>We take the first Record of each page and build the index entry vector jumping <strong>records_per_page</strong> == 23 Records each time.</p>
+<p>Last, we save the vector to a file like we already did before.</p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>Bjarne Stroutrup. The C++ Programming Language, ̀§11.4&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../part2/" class="btn btn-neutral float-left" title="Part 2"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/JohnHop/useless_isam" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../part2/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
