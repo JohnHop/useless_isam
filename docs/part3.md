@@ -26,7 +26,7 @@ std::vector<Record> load_data(const std::string& filename)
 
 It will set up a `std::vector` with all Records loaded from the _database.bin_ and will returns it. Quite simple.
 
-We need to know how many Records are presente inside the database. So we will open the file in binary / read mode with the `std::ios_base::ate` flag. Then, the `tellg()` method will returns the file byte size, say **db_size**.
+We need to know how many Records are present inside the database. So we will open the file with the `std::ios_base::ate` flag in order to move the file pointer position at the end of file. Then, the `tellg()` method will returns the file byte size, say **db_size**.
 
 Since `PAGE_SIZE = 4096` and `sizeof_record = sizeof(Record)`
 
@@ -80,7 +80,17 @@ In order to avoid narrowing conversion messages by compiler, we had to initializ
 
 The remainder of the function is quite self-explanatory.
 
-//TODO: talk about move semantics
+### Moving semantics
+
+You should have noticed that the function is returning a local object. If you don't know about **moving semantics**, you are probably thinking that the function is returning a vector object by value (a copy). Well, if a Record size is 176 byte, and the database has more than 140 thousand of Records, this would be very problematic... Fortunally, C++11 introduced rvalue references and move semantics which let you _move_ an object outside of a function. So, in brief, the vector is not copied but moved and this is almost costless.
+
+Some resources I found useful about move semantics:
+
+- Bjarne Stroustrup. The C++ Programming Language. §3.3.2, §6.4.1, §7.7.2, §17.1, §17.5.2
+- [The Cherno](https://www.youtube.com/@TheCherno) on YouTube
+    - lvalues and rvalues in C++: <https://youtu.be/fbYknr-HPYE>
+    - Move Semantics in C++: <https://youtu.be/ehMg6zvXuMY>
+- fredoverflow on Stack Overflow (the best in my opinion): <https://stackoverflow.com/questions/3106110/what-is-move-semantics>
 
 ## Sorting and writing data
 
