@@ -61,6 +61,8 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#about-narrowing-conversion">About narrowing conversion</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#moving-semantics">Moving semantics</a>
+    </li>
         </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#sorting-and-writing-data">Sorting and writing data</a>
@@ -111,7 +113,7 @@
 <pre><code class="language-C++">std::vector&lt;Record&gt; load_data(const std::string&amp; filename)
 </code></pre>
 <p>It will set up a <code>std::vector</code> with all Records loaded from the <em>database.bin</em> and will returns it. Quite simple.</p>
-<p>We need to know how many Records are presente inside the database. So we will open the file in binary / read mode with the <code>std::ios_base::ate</code> flag. Then, the <code>tellg()</code> method will returns the file byte size, say <strong>db_size</strong>.</p>
+<p>We need to know how many Records are present inside the database. So we will open the file with the <code>std::ios_base::ate</code> flag in order to move the file pointer position at the end of file. Then, the <code>tellg()</code> method will returns the file byte size, say <strong>db_size</strong>.</p>
 <p>Since <code>PAGE_SIZE = 4096</code> and <code>sizeof_record = sizeof(Record)</code></p>
 <ul>
 <li>with <code>records_per_page = PAGE_SIZE / sizeof_record</code> provide the number of records in a single page</li>
@@ -149,7 +151,18 @@ const unsigned remaining_bytes( db_size % PAGE_SIZE );
 </code></pre>
 <p>In order to avoid narrowing conversion messages by compiler, we had to initialize the two variables without the {}-initializer notation. Fortunally, we already checked if <code>db_size</code> is positive so we can safety do this.</p>
 <p>The remainder of the function is quite self-explanatory.</p>
-<p>//TODO: talk about move semantics</p>
+<h3 id="moving-semantics">Moving semantics</h3>
+<p>You should have noticed that the function is returning a local object. If you don't know about <strong>moving semantics</strong>, you are probably thinking that the function is returning a vector object by value (a copy). Well, if a Record size is 176 byte, and the database has more than 140 thousand of Records, this would be very problematic... Fortunally, C++11 introduced rvalue references and move semantics which let you <em>move</em> an object outside of a function. So, in brief, the vector is not copied but moved and this is almost costless.</p>
+<p>Some resources I found useful about move semantics:</p>
+<ul>
+<li>Bjarne Stroustrup. The C++ Programming Language. §3.3.2, §6.4.1, §7.7.2, §17.1, §17.5.2</li>
+<li><a href="https://www.youtube.com/@TheCherno">The Cherno</a> on YouTube<ul>
+<li>lvalues and rvalues in C++: <a href="https://youtu.be/fbYknr-HPYE">https://youtu.be/fbYknr-HPYE</a></li>
+<li>Move Semantics in C++: <a href="https://youtu.be/ehMg6zvXuMY">https://youtu.be/ehMg6zvXuMY</a></li>
+</ul>
+</li>
+<li>fredoverflow on Stack Overflow (the best in my opinion): <a href="https://stackoverflow.com/questions/3106110/what-is-move-semantics">https://stackoverflow.com/questions/3106110/what-is-move-semantics</a></li>
+</ul>
 <h2 id="sorting-and-writing-data">Sorting and writing data</h2>
 <p>We can take advantage of the standard library for sorting data with lambda expression<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>. In the main() function,</p>
 <pre><code class="language-C++">std::vector&lt;Record&gt; database{load_data(DATABASE_FILENAME)};
