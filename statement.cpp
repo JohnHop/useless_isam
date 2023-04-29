@@ -1,14 +1,13 @@
 #include "statement.h"
 
 #include <stdexcept>
-#include <iostream> //FIXME
 
 /**
  * Esegue direttamente il parsing della stringa di input.
  * TODO: la generazione delle eccezioni deve avvenire secondo la regola RAII...
 */
 Statement::Statement(const std::string& input)
-: lexer{input}, index{nullptr}, index_size{0}
+: lexer{input}
 {
   if(lexer.get().type != Token_type::SELECT) {
     throw std::logic_error("Statement::construct(): SELECT expected!");
@@ -24,6 +23,7 @@ Statement::Statement(const std::string& input)
 /**
  * *Attenzione: si mangia un token in più!
  * TODO: si dovrebbe restituire, in caso di SELECT_SINGLE, il token che ha mangiato in più...
+ * TODO: si potrebbe rimettere nello stream l'intero token che si è mangiato in più...
  */
 void Statement::expression() {
   start_id = id();
@@ -31,7 +31,7 @@ void Statement::expression() {
   if(lexer.get().type == Token_type::RANGE_OPERATOR) {
     statement_type = Type::SELECT_RANGE;
     end_id = id();
-    lexer.get();  //! devo comunque mangiare un token in più
+    lexer.get();  //! devo comunque mangiare un token in più come già avviene nel caso in cui la condizione dell'if() sia falsa
   }
   else {
     statement_type = Type::SELECT_SINGLE;
@@ -42,11 +42,11 @@ void Statement::expression() {
  * Si aspetta semplicemente un intero positivo.
 */
 int Statement::id() {
-  if(lexer.get().type == Token_type::POSITIVE_NUMBER) {
+  if(lexer.get().type == Token_type::POSITIVE_INTEGER) {
     return std::stoi(lexer.current().value);
   }
   else {
-    throw std::logic_error{"Statement::id(): expected POSITIVE_NUMBER!"};
+    throw std::logic_error{"Statement::id(): expected POSITIVE INTEGER!"};
   }
 }
 
@@ -76,6 +76,4 @@ std::vector<Record> Statement::execute(Database& database) {
 
     return results;
   }
-
-
 }

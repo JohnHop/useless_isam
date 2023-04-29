@@ -42,6 +42,24 @@ Actually, only single level indexing is supoorted.
 
 Finally, this executable will load the index and database files for support search queries and range selections.
 
+Also, this is my CMakeLists.txt
+
+```C
+cmake_minimum_required(VERSION 3.0.0)
+project(isam VERSION 0.1.0)
+
+include(CTest)
+enable_testing()
+
+add_executable(csv2bin csv2bin.cpp record.cpp)
+add_executable(index-gen index-gen.cpp record.cpp)
+add_executable(isam isam.cpp record.cpp lexer.cpp statement.cpp index.cpp pager.cpp database.cpp)
+
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+include(CPack)
+```
+
 ## References and useful links
 Connor Stack. _db_tutorial_<br>
 Bjarne Stroustrup. _The C++ Programming Language (4th edition)_<br>

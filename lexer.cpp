@@ -28,7 +28,7 @@ Token Lexer::get() {
         std::string number;
         input >> number;  //otteniamo il numero comunque sotto la forma di stringa
 
-        return current_token = {Token_type::POSITIVE_NUMBER, number};
+        return current_token = {Token_type::POSITIVE_INTEGER, number};
       }
       else {  //niente di ciò che è stato previsto
         throw std::logic_error{"Lexer::get(): Unrecognized token!"};

@@ -6,7 +6,6 @@
 
 #include "lexer.h"
 #include "record.h"
-#include "params.h"
 #include "database.h"
 
 /**
@@ -26,9 +25,6 @@ class Statement {
   int end_id;
 
   Lexer lexer;
-
-  index_entry_t* index;
-  size_t index_size;
 
 public:
   Statement(const std::string&);

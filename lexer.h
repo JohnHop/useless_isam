@@ -18,7 +18,7 @@ public:
   Lexer(const std::string& in): input(in), current_token{Token_type::end} { };
 
   Token get();  //preleva e restituisce il token successivo dall'input
-  const Token& current() const { return current_token; };
+  const Token& current() const { return current_token; }; //restituisce il token corrente senza consumarlo
 };
 
 #endif // LEXER_H

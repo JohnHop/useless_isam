@@ -4,8 +4,8 @@
 #include <string>
 
 enum class Token_type {
-  SELECT, RANGE_OPERATOR, POSITIVE_NUMBER,
-  end  //fine dell'input
+  SELECT, RANGE_OPERATOR, POSITIVE_INTEGER,
+  end  //end of input
 };
 
 struct Token {

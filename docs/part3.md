@@ -94,7 +94,7 @@ Some resources I found useful about move semantics:
 
 ## Sorting and writing data
 
-We can take advantage of the standard library for sorting data with lambda expression[^1]. In the main() function,
+We can take advantage of the standard library for sorting data with lambda expression[^1]. In the `main()` function,
 
 ```C++
 std::vector<Record> database{load_data(DATABASE_FILENAME)};
@@ -106,7 +106,7 @@ std::sort(database.begin(), database.end(),
 );
 ```
 
-Writing data should not be a problematic.
+Writing data should not be problematic.
 
 ## Generating index file
 
@@ -131,5 +131,11 @@ for(int page = 0; page < num_of_pages; page += 1) {
 We take the first Record of each page and build the index entry vector jumping **records_per_page** == 23 Records each time.
 
 Last, we save the vector to a file like we already did before.
+
+## About indexing and a bit of criticism
+
+This is a single level indexing with no paging: just a simple sequence of `index_entry_t` and no more. We obtained a file 49.008 byte big. It is bigger than a single page size chosen before. This results in a lot of RAM memory utilization because you will see, during the _isam.exe_ implementation, that we will load the entire index file
+
+We could add paging support to the index file creation in order to reduce RAM utilization or we could also using multi-level index, recursively applying the index creation step.
 
 [^1]: Bjarne Stroutrup. The C++ Programming Language, ̀§11.4
