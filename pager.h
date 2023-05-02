@@ -24,7 +24,6 @@ public:
   Pager(const std::string&);
   ~Pager();
 
-
   const Page* get_page(const int); //restituisce una pagina //? è meglio usare un unsigned int?
   size_t get_num_of_pages() const { return pages_size; };
 

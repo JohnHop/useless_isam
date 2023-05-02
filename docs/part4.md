@@ -10,7 +10,7 @@ Our _isam.exe_ will be the concrete ISAM reader, supporting single / range selec
 
 Let's start with the latter...
 
-## Parsing
+## Parser
 
 We need something able to understand queries like
 
@@ -65,7 +65,7 @@ public:
 
 The meaning of the Lexer class is to hide the origin (in this case, the `std::cin` standard input), showing to the Parser a sequence of Token and no more. So the Lexer had to recognize a sequence of character and transform it in a Token sequence. This is archieved with the `get()` function implemented in [lexer.cpp](https://github.com/JohnHop/useless_isam/blob/main/lexer.h): it should be easy to understand.
 
-Now it's **Parser**' turn. It is a [Statement](https://github.com/JohnHop/useless_isam/blob/main/statement.h) class that gets Tokens from the Lexer and builds an internal representation for the subsequent action
+Now it's **Parser**'s turn. It is a [Statement](https://github.com/JohnHop/useless_isam/blob/main/statement.h) class that gets Tokens from the Lexer and builds an internal representation for the subsequent action
 
 ```C++
 class Statement {
@@ -127,7 +127,47 @@ int main(int argc, char const *argv[])
 }
 ```
 
-Some sections are commented because it's too early to talk about it. 
+Some sections are commented because it's too early to talk about them.
 
-[^1]: Bjarne Stroustrup. The C++ Programming Language. ̀§10.2.1
-[^2]: https://cstack.github.io/db_tutorial/parts/part1.html
+Next we will talk about the commented sections.
+
+## Index class
+
+This is preparatory to the **Database** class. We need a guy that help us to 
+
+1. load index records from the index file to memory
+2. let us search for a key and get the page number
+
+Not so hard. So this is the interface and representation of **Index** class
+
+```C++
+class Index {
+  index_entry_t* index;
+  int index_size;
+
+public:
+  Index(const std::string&);
+  ~Index() { if(index) delete[] index; };
+
+  int search(const unsigned int);
+  int search_reverse(const unsigned int);
+
+  //Suppressed
+  Index(const Index&) = delete;
+  Index(const Index&&) = delete;
+  Index& operator=(const Index&) = delete;
+  Index& operator=(Index&&) = delete;
+};
+```
+
+First of all, we suppress some implicit-defined member functions because they would be incorrect . We should have redefined them but, actually, we don't need this.<br>
+The constructor simply loads index records from file<br>
+The `search()` function finds the page number of first Record which key is bigger or equal to the argument.<br>
+The `search_reverse()` is similar but it is used for range selection when searching for _end-id_.
+
+## Pager class
+
+This is an attempt of introducing some sort of optimization through caching. When retrieving a Record, the entire page within which it resides is loaded in memory and stored until the end of program. In this way, if Records of the same page will be loaded much faster. 
+
+[^1]: Bjarne Stroustrup. The C++ Programming Language. §10.2.1
+[^2]: <https://cstack.github.io/db_tutorial/parts/part1.html>

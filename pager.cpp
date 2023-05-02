@@ -2,20 +2,33 @@
 
 #include <fstream>
 
-Pager::Pager(const std::string& f): filename{f}, pages{nullptr}, pages_size{0}, last_page_is_partial{false}, file_size{0}
+Pager::Pager(const std::string& f)
+: filename{f}, pages{nullptr}, pages_size{0}, last_page_is_partial{false}, file_size{0}
 {
   std::ifstream file{filename, std::ios_base::in | std::ios_base::binary | std::ios_base::ate};
-
-  //TODO: controllo corretta apertura file
+  if(!file) {
+    std::clog << "Error opening file " << filename << "\n";
+    exit(EXIT_FAILURE);
+  }
 
   file_size = file.tellg(); //dimensione del file in byte
+  if(file_size == -1) {
+    std::clog << "Error getting file size of " << filename << "\n";
+    exit(EXIT_FAILURE);
+  }
+
   pages_size = file_size / PAGE_SIZE;  //numero di pagine presenti nel file
   if(file.tellg() % PAGE_SIZE) {  //ma se è presente una pagina parziale
     last_page_is_partial = true;
     pages_size += 1;
   }
 
-  pages = new Page*[pages_size]{nullptr};  //TODO: gestisci quando lancia
+  try {
+    pages = new Page*[pages_size]{nullptr};
+  } catch(std::bad_alloc& e) {
+    std::clog << "Failed to allocate memory in Pager(): " << e.what() << "\n";
+    exit(EXIT_FAILURE);
+  }
 }
 
 Pager::~Pager() {
@@ -48,14 +61,28 @@ const Page* Pager::get_page(const int num_page) {
   const int records_to_fetch{ (num_page == pages_size-1 && last_page_is_partial) ? (file_size % PAGE_SIZE) : (this->records_per_page)}; //Determino quanti record prelevare
   
   std::ifstream file{filename, std::ios_base::in | std::ios_base::binary};
+  if(!file) {
+    std::clog << "Error opening file " << filename << "\n";
+    exit(EXIT_FAILURE);
+  }
 
-  //TODO: controllo apertura file
+  file.exceptions(std::ofstream::failbit);  //Ci assicuriamo che siano attive le eccezioni
 
-  file.seekg(PAGE_SIZE*num_page); //Mi posiziono all'inizio della pagina da prelevare
+    file.seekg(PAGE_SIZE*num_page); //Mi posiziono all'inizio della pagina da prelevare
 
-  pages[num_page] = new Page{num_page, records_to_fetch}; //TODO: gestisci quando lancia
-  
-  file.read( reinterpret_cast<char*>(pages[num_page]->records), sizeof(Record)*records_to_fetch);
+  try {
+    pages[num_page] = new Page{num_page, records_to_fetch}; //TODO: gestisci quando lancia
+    
+    file.read( reinterpret_cast<char*>(pages[num_page]->records), sizeof(Record)*records_to_fetch);
+  }
+  catch(std::bad_alloc& e) {
+    std::clog << "Failed to allocate memory in get_page(): " << e.what() << "\n";
+    exit(EXIT_FAILURE);
+  }
+  catch(std::ifstream::failure& e) {
+    std::clog << "Error loading page from " << filename << ": " << e.what() << "\n";
+    exit(EXIT_FAILURE);
+  }
 
   return pages[num_page];
 }

@@ -1,23 +1,47 @@
 #include "index.h"
 
 #include <fstream>
+#include <iostream>
 
 /**
  * Carica l'indice dal file.
- * TODO: lancia secondo la regola RAII
 */
-Index::Index(const std::string& filename) {
+Index::Index(const std::string& filename)
+: index{nullptr}, index_size{0}
+{
   std::ifstream file{filename, std::ios_base::binary | std::ios_base::ate};
 
-  //TODO verifica sull'apertura del file
+  if(!file) { //? forse si dovrebbero usare le eccezioni?
+    std::clog << "Error opening file " << filename << "\n";
+    exit(EXIT_FAILURE);
+  }
 
   index_size = file.tellg() / sizeof(index_entry_t);  //determino la dimensione dell'indice in memoria
-  index = new index_entry_t[index_size];  //TODO: lancia se non può allocare
+  if(index_size == -1) {
+    std::clog << "Error getting file size of " << filename << "\n";
+    exit(EXIT_FAILURE);
+  }
 
   file.seekg(0, std::ios_base::beg);  //mi riposiziono all'inizio del file
+  if(!file) {
+    std::clog << "Error setting file pointer position of " << filename << "\n";
+    exit(EXIT_FAILURE);
+  }
 
-  for(int i = 0; !file.eof(); i += 1) {
-    file.read( reinterpret_cast<char*>(&index[i]), sizeof(index_entry_t) );
+  file.exceptions(std::ofstream::failbit);  //Ci assicuriamo che siano attive le eccezioni
+
+  try {
+    index = new index_entry_t[index_size];
+
+    for(int i = 0; !file.eof(); i += 1) {
+      file.read( reinterpret_cast<char*>(&index[i]), sizeof(index_entry_t) );
+    }
+  } catch(std::bad_alloc& e) {
+    std::clog << "Failed to allocate memory in Index(): " << e.what() << "\n";
+    exit(EXIT_FAILURE);
+  } catch(std::ifstream::failure& e) {
+    std::clog << "Error loading index records from " << filename << ": " << e.what() << "\n";
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -26,7 +50,7 @@ Index::Index(const std::string& filename) {
  * La ricerca parte dalla fine e viene restituita la posizione della prima pagina che contiene tutte le chiavi >= @key
 */
 int Index::search(const unsigned int key) {
-  int i{index_size-1};
+  int i{index_size-1};  //La ricerca inizia dalla fine
 
   while(i >= 0 && key < index[i].first) { //ricerca all'interno del vettore dell'indice
     i -= 1;
@@ -45,7 +69,7 @@ int Index::search(const unsigned int key) {
  * La ricerca parte dall'inizio e prosegue finché non si arriva all'indice > key; quindi si restituisce la posizione dell'indice precedente
 */
 int Index::search_reverse(const unsigned int key) {
-  int i{0};
+  int i{0}; //Ricerca dall'inizio
 
   while(i < index_size && key >= index[i].first) {
     i += 1;
