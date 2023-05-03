@@ -74,6 +74,10 @@
                 <li class="toctree-l1"><a class="reference internal" href="part3/">Part 3</a>
                 </li>
               </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="part4/">Part 4</a>
+                </li>
+              </ul>
       </div>
     </div>
     </nav>
@@ -128,6 +132,21 @@ More precisely, records are grouped in pages and, if needed, some padding will b
 Actually, only single level indexing is supoorted.</p>
 <h3 id="isam">isam</h3>
 <p>Finally, this executable will load the index and database files for support search queries and range selections.</p>
+<p>Also, this is my CMakeLists.txt</p>
+<pre><code class="language-C">cmake_minimum_required(VERSION 3.0.0)
+project(isam VERSION 0.1.0)
+
+include(CTest)
+enable_testing()
+
+add_executable(csv2bin csv2bin.cpp record.cpp)
+add_executable(index-gen index-gen.cpp record.cpp)
+add_executable(isam isam.cpp record.cpp lexer.cpp statement.cpp index.cpp pager.cpp database.cpp)
+
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+include(CPack)
+</code></pre>
 <h2 id="references-and-useful-links">References and useful links</h2>
 <p>Connor Stack. <em>db_tutorial</em><br>
 Bjarne Stroustrup. <em>The C++ Programming Language (4th edition)</em><br>
@@ -184,5 +203,5 @@ Compiler Explorer: https://godbolt.org/</p>
 
 <!--
 MkDocs version : 1.4.2
-Build Date UTC : 2023-04-26 15:15:24.969560+00:00
+Build Date UTC : 2023-05-03 16:08:49.803950+00:00
 -->

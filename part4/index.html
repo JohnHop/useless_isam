@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://johnhop.github.io/useless_isam/part4/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Part 4 - useless_isam</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Part 4";
+        var mkdocs_page_input_path = "part4.md";
+        var mkdocs_page_url = "/useless_isam/part4/";
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> useless_isam
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">What is useless_isam ?</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../part1/">Part 1</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../part2/">Part 2</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../part3/">Part 3</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Part 4</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#parser-class">Parser class</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#index-class">Index class</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#pager-class">Pager class</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#page-class">Page class</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#cursor-class">Cursor class</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#database-class">Database class</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#single-search">Single search</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#range-selections">Range selections</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#back-to-the-statement-class">Back to the Statement class</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">useless_isam</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>Part 4</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/JohnHop/useless_isam/edit/master/docs/part4.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="part-4">Part 4</h1>
+<p>Warning: this will be the most substantial part.</p>
+<p>Our <em>isam.exe</em> will be the concrete ISAM reader, supporting single / range selection of Records. We will need to take care of the following problems:</p>
+<ol>
+<li>index file loading and search support on it</li>
+<li>database file loading and single / multi Records retrieval (through a "cache-paging system")</li>
+<li>a decent user interface able to understand simple queries</li>
+</ol>
+<p>Let's start with the latter...</p>
+<h2 id="parser-class">Parser class</h2>
+<p>We need something able to understand queries like</p>
+<pre><code>SELECT [id]
+SELECT [range]
+</code></pre>
+<p>where <em>[range]</em> is something like <em>[start-id]</em> <strong>—</strong> <em>[end-id]</em>.</p>
+<p>Not a big deal. Maybe calling it a "parser" is a bit too much. Anyway, it will be an ultra minimalist parser. In fact, the grammar is quite simple</p>
+<pre><code class="language-c">statement   → SELECT [expression]
+expression  → [id]
+              [id] - [id]
+id          → POSITIVE INTEGER
+</code></pre>
+<p>This style of syntax analysis is called <em>recursive descent</em><sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>. <em>statement</em>, <em>expression</em> and <em>id</em> are called <strong>grammar production</strong>: for each one, there is a function. Usually, there is a Lexer, a Parser and a Symbol Table. But our grammar is really simple so we don't need the last one. From the famous Dragon Book (§3.1)...</p>
+<p><img alt="" src="../lexer-parser-table.png" /></p>
+<p>Based on the grammar and the model above, let's start defining a <strong>Token</strong> class in <a href="https://github.com/JohnHop/useless_isam/blob/main/token.h">token.h</a></p>
+<pre><code class="language-C++">enum class Token_type {
+  SELECT, RANGE_OPERATOR, POSITIVE_INTEGER,
+  end  //end of input
+};
+
+struct Token {
+  Token_type type;
+  std::string value;
+};
+</code></pre>
+<p>The next step is the <strong>Lexer</strong> (sometime called Scanner) in <a href="https://github.com/JohnHop/useless_isam/blob/main/lexer.h">lexer.h</a></p>
+<pre><code class="language-C++">class Lexer {
+  std::stringstream input;
+  Token current_token;
+
+public:
+  Lexer(const std::string&amp; in): input(in), current_token{Token_type::end} { };
+
+  Token get();  //consume the next token from the origin and return it
+  const Token&amp; current() const { return current_token; }; //only returns the current token
+};
+</code></pre>
+<p>The meaning of the Lexer class is to hide the origin (in this case, the <code>std::cin</code> standard input), showing to the Parser a sequence of Token and no more. So the Lexer had to recognize a sequence of character and transform it in a Token sequence. This is archieved with the <code>get()</code> function implemented in <a href="https://github.com/JohnHop/useless_isam/blob/main/lexer.h">lexer.cpp</a>: it should be easy to understand.</p>
+<p>Now it's <strong>Parser</strong>'s turn. It is a <a href="https://github.com/JohnHop/useless_isam/blob/main/statement.h">Statement</a> class that gets Tokens from the Lexer and builds an internal representation for the subsequent action</p>
+<pre><code class="language-C++">class Statement {
+  enum Type {
+    SELECT_SINGLE, SELECT_RANGE
+  };
+
+  Type statement_type;
+  int start_id;
+  int end_id;
+
+  Lexer lexer;
+
+public:
+  Statement(const std::string&amp;);
+
+  void expression();
+  int id();
+
+  std::vector&lt;Record&gt; execute(Database&amp; database);
+};
+</code></pre>
+<p>If you take a look at <a href="https://github.com/JohnHop/useless_isam/blob/main/lexer.cpp">statement.cpp</a>, you will notice that the mothods <code>expression()</code> and <code>id()</code> match the grammar productions and they are only called inside the <code>Statement()</code> constructor. This is also an attempt to follow the RAII rule: if a problem occur parsing the user input, the constructor fails and there is no risk of creating a partially initialized object.</p>
+<p>Said that, we can start thinking about the <code>main()</code> function with the REPL loop<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup> (a classic).</p>
+<pre><code class="language-C++">int main(int argc, char const *argv[])
+{
+  std::string input;  //sql statement from standard input
+  bool exit{false};
+
+  // Database database{INDEX_FILENAME, DATABASE_FILENAME};
+
+  //REPL
+  while(!exit) {
+    std::cout &lt;&lt; &quot;isam &gt; &quot;;
+    std::getline(std::cin, input, '\n');
+
+    if(input == &quot;.exit&quot; || std::cin.eof()) {
+      exit = true;
+    }
+    else {
+      Statement statement{input};
+    //   std::vector&lt;Record&gt; res = statement.execute(database);
+
+    //   if(res.size()) {
+    //     for(auto&amp; e: res) { //showing results
+    //       std::cout &lt;&lt; e;
+    //     }
+    //   }
+    //   else {
+    //     std::cout &lt;&lt; &quot;Found 0 records\n&quot;;
+    //   }
+    // }
+  }
+  return EXIT_SUCCESS;
+}
+</code></pre>
+<p>Some sections are commented because it's too early to talk about them.</p>
+<p>Next we will talk about the commented sections.</p>
+<h2 id="index-class">Index class</h2>
+<p>This is preparatory to the <strong>Database</strong> class. We need a guy that help us to </p>
+<ol>
+<li>load index records from the index file to memory</li>
+<li>let us search for a key and get the page number</li>
+</ol>
+<p>Not so hard. So this is the interface and representation of <strong>Index</strong> class</p>
+<pre><code class="language-C++">class Index {
+  index_entry_t* index;
+  int index_size;
+
+public:
+  Index(const std::string&amp;);
+  ~Index() { if(index) delete[] index; };
+
+  int search(const unsigned int);
+  int search_reverse(const unsigned int);
+
+  //Suppressed
+  Index(const Index&amp;) = delete;
+  Index(const Index&amp;&amp;) = delete;
+  Index&amp; operator=(const Index&amp;) = delete;
+  Index&amp; operator=(Index&amp;&amp;) = delete;
+};
+</code></pre>
+<p>First of all, we suppress some implicit-defined member functions because they would be incorrect . We should have redefined them but, actually, we don't need this.<br>
+The constructor simply loads index records from file<br>
+The <code>search()</code> function finds the page number of first Record which key is bigger or equal to the argument.<br>
+The <code>search_reverse()</code> is similar but it is used for range selection when searching for <em>end-id</em>.</p>
+<h2 id="pager-class">Pager class</h2>
+<p>This is an attempt of introducing some sort of optimization through caching. When retrieving a Record, the entire page within which it resides is loaded in memory and stored until the end of program. In this way, if Records of the same page will be loaded much faster.</p>
+<p>The most important function is <code>get_page()</code>:</p>
+<pre><code class="language-C++">if(num_page &gt;= this-&gt;pages_size) {
+  return nullptr;
+}
+</code></pre>
+<p>checks if the argument is correct.</p>
+<pre><code class="language-C++">if(pages[num_page]) {
+  return pages[num_page];
+}
+</code></pre>
+<p>returns the page if it is already in memory.</p>
+<pre><code class="language-C++">file.seekg(PAGE_SIZE*num_page);
+</code></pre>
+<p>set the file input position at the start of selected page.</p>
+<pre><code class="language-C++">pages[num_page] = new Page{num_page, records_to_fetch};
+
+file.read( reinterpret_cast&lt;char*&gt;(pages[num_page]-&gt;records), sizeof(Record)*records_to_fetch);
+</code></pre>
+<p>allocate the page and read it from database file.</p>
+<h2 id="page-class">Page class</h2>
+<p>It represents a single page. Attributes are</p>
+<pre><code class="language-C++">struct Page {
+  Record* records;  //Pointer to records array
+  const int size; //Records array size
+  const int page_pos; //Position of page in file
+  (...)
+</code></pre>
+<h2 id="cursor-class">Cursor class</h2>
+<p>This class is like a file pointer position. It allows to easily navigate through the database. It's like a very basic iterator of a Record. Let's see the representation. Default contructor makes a non valid cursor.</p>
+<pre><code class="language-C++">class Cursor {
+  Pager* pager; //a pointer to Page object
+  const Page* page; //pointer to page of the Record
+
+public:
+  const Record* record; //pointer to the Record
+  unsigned int page_pos;  //page position of the Record on file
+  unsigned int array_pos; //Record position on Page class
+  (...)
+</code></pre>
+<p>First, a cursor is not valid when <code>Cursor::record == nullptr</code>. Then</p>
+<pre><code class="language-C++">Cursor::operator bool() const { 
+  return (record) ? true : false; 
+}
+</code></pre>
+<p>Also, we need some comparison function</p>
+<pre><code class="language-C++">bool Cursor::operator==(const Cursor&amp; other) const { 
+  return (this-&gt;page_pos == other.page_pos &amp;&amp; this-&gt;array_pos == other.array_pos) ? true : false; 
+}
+
+bool Cursor::operator!=(const Cursor&amp; other) const { 
+  return !this-&gt;operator==(other); 
+}
+</code></pre>
+<p>At this point, we can define a prefix increment operator <code>Cursor&amp; Cursor::operator++()</code>. If we move forward the cursor, it refers to the next record of the database. What if the current record was the last from the page?</p>
+<pre><code class="language-C++">if(++array_pos == page-&gt;size) { //last record of page
+  page_pos += 1;
+  array_pos = 0;
+}
+</code></pre>
+<p>then we move to the first record (position zero) of the next page. And what if the page was the last?</p>
+<pre><code class="language-C++">if(page_pos == page-&gt;size) { //se era l'ultima pagina
+  this-&gt;record = nullptr; //invalido il cursore
+  return *this;
+}
+</code></pre>
+<p>it means that <code>page_pos</code> now is equal to <code>Page::page_size</code> so we reached the end (invalid cursor).<br>
+Last, we need to computer the difference between two Cursor in terms of Records. So we create <code>int Cursor::diff(const Cursor&amp; other)</code>.</p>
+<h2 id="database-class">Database class</h2>
+<p>The <a href="https://github.com/JohnHop/useless_isam/blob/main/database.h">database</a> class use the Index, Pager and Cursor classes to finalize a simplified database behaviour. Interface consist of two methods: one for single search and another for range selections.</p>
+<h3 id="single-search">Single search</h3>
+<p>The function</p>
+<pre><code class="language-C++">Cursor Database::search(const int key)
+</code></pre>
+<p>search for the record which the column named <em>id</em> is equal to the parameter <em>key</em>. First</p>
+<pre><code class="language-C++">int page_num = this-&gt;index.search(key);
+
+if(page_num == -1) {
+  return Cursor{};
+}
+
+const Page* page = this-&gt;pager.get_page(page_num);
+</code></pre>
+<p>try to locate the page that might contain the key. Then loads the page from file.</p>
+<pre><code class="language-C++">int i{0};
+while(i &lt; pager.records_per_page &amp;&amp; page-&gt;records[i].id != key) {
+  i += 1;
+}
+
+if(i == pager.records_per_page) { //not found
+  return Cursor{};
+}
+else {
+  return Cursor{&amp;pager, page, &amp;(page-&gt;records[i]), i, page_num};
+}
+</code></pre>
+<p>try to locate the record inside the page. If it does not exists, the function returns a invalid Cursor.</p>
+<h3 id="range-selections">Range selections</h3>
+<p>The function</p>
+<pre><code class="language-C++">std::pair&lt;Cursor,Cursor&gt; Database::search(const int start_key, const int end_key)
+</code></pre>
+<p>search for all records which <em>id</em> is included in the range <strong>[<em>start_key</em>, <em>end_key</em>]</strong>. It returns a couple of Cursor referring to the first and the last element found. It's more complicated. A step at a time...</p>
+<pre><code class="language-C++">const auto not_found = std::pair&lt;Cursor,Cursor&gt;{ Cursor{}, Cursor{} };
+</code></pre>
+<p>this is a shortcut to the value <em>not found</em> used inside this function.</p>
+<pre><code class="language-C++">int start_page_pos = this-&gt;index.search(start_key);
+
+if(start_page_pos == -1) {
+  return not_found;
+}
+
+const Page* start_page_ptr = this-&gt;pager.get_page(start_page_pos);
+</code></pre>
+<p>Like before, try to locate the page that might contain the key and loads the page from file. But this time is different because the page could contain elements less than <em>start_key</em>. In this case we had to go to the next page</p>
+<pre><code class="language-C++">int start_i = start_page_ptr-&gt;search_greater_equal(start_key);
+
+if(start_i == -1) {
+  start_page_pos += 1;
+  start_page_ptr = this-&gt;pager.get_page(start_page_pos);
+  start_i = start_page_ptr-&gt;search_greater_equal(start_key);
+}
+</code></pre>
+<p>The second part search for a key less or equal to <em>end_key</em> and is similar to the first one.</p>
+<p>Finally</p>
+<pre><code class="language-C++">return std::pair{ 
+  Cursor{&amp;pager, start_page_ptr, &amp;(start_page_ptr-&gt;records[start_i]), start_page_pos, start_i}, 
+  Cursor{&amp;pager, end_page_ptr, &amp;(end_page_ptr-&gt;records[end_i]), end_page_pos, end_i}
+};
+</code></pre>
+<p>returns a range of records.</p>
+<h2 id="back-to-the-statement-class">Back to the Statement class</h2>
+<p>Last step is to implement <code>std::vector&lt;Record&gt; Statement::execute(Database&amp; database)</code>. We store the result in a <code>std::vector</code> class: if no records are found, then we get an empty vector.<br>
+First</p>
+<pre><code class="language-C++">if(statement_type == Type::SELECT_SINGLE) {
+  Cursor res = database.search(start_id);
+
+  return (res) ? std::vector{*res.record} : std::vector&lt;Record&gt;(0);
+}
+</code></pre>
+<p>quite easy. For range selections instead </p>
+<pre><code class="language-C++">auto range = database.search(start_id, end_id);
+
+if(!range.first) {  //se non trovato
+  return std::vector&lt;Record&gt;(0);
+}
+</code></pre>
+<p>no criptic expressions untile here. Next, if there are some results</p>
+<pre><code class="language-C++">std::vector&lt;Record&gt; results(range.first.diff(range.second) + 1);
+</code></pre>
+<p>then constructs a vector with the number of records found</p>
+<pre><code class="language-C++">int i{0};
+while(range.first != range.second) {
+  results[i++] = *range.first.record;
+  ++range.first;
+}
+results[i] = *range.first.record;
+
+return results;
+</code></pre>
+<p>then put each record inside the vector.</p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>Bjarne Stroustrup. The C++ Programming Language. §10.2.1&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="https://cstack.github.io/db_tutorial/parts/part1.html">https://cstack.github.io/db_tutorial/parts/part1.html</a>&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../part3/" class="btn btn-neutral float-left" title="Part 3"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/JohnHop/useless_isam" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../part3/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

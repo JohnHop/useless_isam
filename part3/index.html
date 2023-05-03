@@ -69,7 +69,13 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#generating-index-file">Generating index file</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#about-indexing-and-a-bit-of-criticism">About indexing and a bit of criticism</a>
+    </li>
     </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../part4/">Part 4</a>
                 </li>
               </ul>
       </div>
@@ -164,7 +170,7 @@ const unsigned remaining_bytes( db_size % PAGE_SIZE );
 <li>fredoverflow on Stack Overflow (the best in my opinion): <a href="https://stackoverflow.com/questions/3106110/what-is-move-semantics">https://stackoverflow.com/questions/3106110/what-is-move-semantics</a></li>
 </ul>
 <h2 id="sorting-and-writing-data">Sorting and writing data</h2>
-<p>We can take advantage of the standard library for sorting data with lambda expression<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>. In the main() function,</p>
+<p>We can take advantage of the standard library for sorting data with lambda expression<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>. In the <code>main()</code> function,</p>
 <pre><code class="language-C++">std::vector&lt;Record&gt; database{load_data(DATABASE_FILENAME)};
 
 std::sort(database.begin(), database.end(),
@@ -173,7 +179,7 @@ std::sort(database.begin(), database.end(),
   }
 );
 </code></pre>
-<p>Writing data should not be a problematic.</p>
+<p>Writing data should not be problematic.</p>
 <h2 id="generating-index-file">Generating index file</h2>
 <p>Same for the database, we will generate a std::vector of index entries e write it to a file <em>index.bin</em>.
 To represent a pair of (key, page), I decide to use the std::pair from the standard library. This class is a template, so we can save time putting</p>
@@ -189,6 +195,9 @@ for(int page = 0; page &lt; num_of_pages; page += 1) {
 </code></pre>
 <p>We take the first Record of each page and build the index entry vector jumping <strong>records_per_page</strong> == 23 Records each time.</p>
 <p>Last, we save the vector to a file like we already did before.</p>
+<h2 id="about-indexing-and-a-bit-of-criticism">About indexing and a bit of criticism</h2>
+<p>This is a single level indexing with no paging: just a simple sequence of <code>index_entry_t</code> and no more. We obtained a file 49.008 byte big. It is bigger than a single page size chosen before. This results in a lot of RAM memory utilization because you will see, during the <em>isam.exe</em> implementation, that we will load the entire index file</p>
+<p>We could add paging support to the index file creation in order to reduce RAM utilization or we could also using multi-level index, recursively applying the index creation step.</p>
 <div class="footnote">
 <hr />
 <ol>
@@ -202,6 +211,7 @@ for(int page = 0; page &lt; num_of_pages; page += 1) {
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
         <a href="../part2/" class="btn btn-neutral float-left" title="Part 2"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../part4/" class="btn btn-neutral float-right" title="Part 4">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -230,6 +240,8 @@ for(int page = 0; page &lt; num_of_pages; page += 1) {
     
       <span><a href="../part2/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
+    
+      <span><a href="../part4/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
