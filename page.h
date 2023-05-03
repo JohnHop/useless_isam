@@ -4,6 +4,8 @@
 #include "params.h"
 #include "record.h"
 
+#include <exception>
+
 /**
  * Di norma una pagina contiene un numero fisso di Record, eccetto per quanto riguarda l'ultima pagina.
 */
@@ -12,12 +14,30 @@ struct Page {
   const int size; //Numero di record presenti nella pagina
   const int page_pos; //Posizione della pagina all'interno del file
 
-  Page(const int pp, const int s): records{nullptr}, page_pos{pp}, size{s} { records = new Record[size]; };
+  Page(const int, const int);
   ~Page() { if(records) delete[] records; };
 
   int search_greater_equal(const unsigned int) const; //TODO: puoi generalizzare la ricerca utilizzando template di funzioni
   int search_less_equal(const unsigned int) const;
+
+  //Funzioni soppresse
+  Page(const Page&) = delete;
+  Page(const Page&&) = delete;
+  Page& operator=(const Page&) = delete;
+  Page& operator=(Page&) = delete;
 };
+
+inline Page::Page(const int pp, const int s)
+: records{nullptr}, page_pos{pp}, size{s} 
+{ 
+  try {
+    records = new Record[size];
+  }
+  catch(std::bad_alloc& e) {
+    std::clog << "Failed to allocate memory in Pager(): " << e.what() << "\n";
+    exit(EXIT_FAILURE);
+  }
+}
 
 /**
  * Cerca il primo record di cui id >= @key per ciascun record della pagina.

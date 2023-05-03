@@ -33,13 +33,14 @@ Index::Index(const std::string& filename)
   try {
     index = new index_entry_t[index_size];
 
-    for(int i = 0; !file.eof(); i += 1) {
+    for(int i = 0; i < index_size; i += 1) {
       file.read( reinterpret_cast<char*>(&index[i]), sizeof(index_entry_t) );
     }
   } catch(std::bad_alloc& e) {
     std::clog << "Failed to allocate memory in Index(): " << e.what() << "\n";
     exit(EXIT_FAILURE);
-  } catch(std::ifstream::failure& e) {
+  } 
+  catch(std::ifstream::failure& e) {
     std::clog << "Error loading index records from " << filename << ": " << e.what() << "\n";
     exit(EXIT_FAILURE);
   }

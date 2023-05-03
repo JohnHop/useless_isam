@@ -68,19 +68,19 @@ const Page* Pager::get_page(const int num_page) {
 
   file.exceptions(std::ofstream::failbit);  //Ci assicuriamo che siano attive le eccezioni
 
+  try {
     file.seekg(PAGE_SIZE*num_page); //Mi posiziono all'inizio della pagina da prelevare
 
-  try {
-    pages[num_page] = new Page{num_page, records_to_fetch}; //TODO: gestisci quando lancia
+    pages[num_page] = new Page{num_page, records_to_fetch};
     
     file.read( reinterpret_cast<char*>(pages[num_page]->records), sizeof(Record)*records_to_fetch);
   }
-  catch(std::bad_alloc& e) {
-    std::clog << "Failed to allocate memory in get_page(): " << e.what() << "\n";
-    exit(EXIT_FAILURE);
-  }
   catch(std::ifstream::failure& e) {
     std::clog << "Error loading page from " << filename << ": " << e.what() << "\n";
+    exit(EXIT_FAILURE);
+  }
+  catch(std::bad_alloc& e) {
+    std::clog << "Failed to allocate memory in get_page(): " << e.what() << "\n";
     exit(EXIT_FAILURE);
   }
 

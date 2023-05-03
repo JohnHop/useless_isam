@@ -5,22 +5,22 @@
 
 class Cursor {
   Pager* pager; //TODO: rendilo un puntatore costante a dati variabili (oppure un riferimento)
-  const Page* page;
+  const Page* page; //puntatore alla pagina alla quale si riferisce il cursore
 
 public:
   const Record* record;
-  unsigned int page_pos;  //pagina dalla quale è riferito il Record
-  unsigned int array_pos; //posizione del Record all'interno del vettore 'records' della pagina
+  int page_pos;  //pagina dalla quale è riferito il Record
+  int array_pos; //posizione del Record all'interno del vettore 'records' della pagina
 
-  Cursor(Pager* pg = nullptr, const Page* p = nullptr, const Record* r = nullptr, unsigned int pp = 0, unsigned int ap = 0)
+  Cursor(Pager* pg = nullptr, const Page* p = nullptr, const Record* r = nullptr, int pp = 0, int ap = 0)
     : pager{pg}, page{p}, record{r}, array_pos{ap}, page_pos{pp} { };
 
-  operator bool() const { return (record) ? true : false; }; //TODO: valuta se deve essere explicit
+  operator bool() const { return (record) ? true : false; } //TODO: valuta se deve essere explicit
   Cursor& operator++();
-  bool operator==(const Cursor& o) const { return (this->page_pos == o.page_pos && this->array_pos == o.array_pos) ? true : false; };
-  bool operator!=(const Cursor& o) const { return !this->operator==(o); }
+  bool operator==(const Cursor& other) const { return (this->page_pos == other.page_pos && this->array_pos == other.array_pos) ? true : false; }
+  bool operator!=(const Cursor& other) const { return !this->operator==(other); }
 
-  long int diff(const Cursor&);
+  int diff(const Cursor&);
 };
 
 inline Cursor& Cursor::operator++() {
@@ -29,7 +29,7 @@ inline Cursor& Cursor::operator++() {
     array_pos = 0;
   }
 
-  if(page_pos == pager->get_num_of_pages()) { //se era l'ultima pagina
+  if(page_pos == page->size) { //se era l'ultima pagina
     this->record = nullptr; //invalido il cursore
     return *this;
   }
@@ -42,15 +42,14 @@ inline Cursor& Cursor::operator++() {
 
 /** Restituisce la distanza tra due cursori in termini di numero di record.
  * Se il cursore attuale è dopo @other allora restituisce semplicemente -1.
- * FIXME: controllo dell'ultima pagina parziale
  */
-inline long int Cursor::diff(const Cursor& other) {
-  if(this->page_pos > other.page_pos || this->page_pos == other.page_pos && this->array_pos > other.array_pos) {  //@other viene prima del cursore attuale
+inline int Cursor::diff(const Cursor& other) {
+  if(this->page_pos > other.page_pos || (this->page_pos == other.page_pos && this->array_pos > other.array_pos) ) {  //@other viene prima del cursore attuale
     return -1;
   }
 
-  long int page_diff = other.page_pos - this->page_pos; //differenza in termini di pagine
-  long int record_diff = other.array_pos - this->array_pos;  //differenza in termini di record
+  int page_diff = other.page_pos - this->page_pos; //differenza in termini di pagine
+  int record_diff = other.array_pos - this->array_pos;  //differenza in termini di record
 
   return (page_diff*pager->records_per_page)+record_diff;
 }

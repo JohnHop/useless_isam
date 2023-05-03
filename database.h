@@ -16,8 +16,8 @@ public:
   Database(const std::string& index_filename, const std::string& database_filename):
     index{index_filename}, pager{database_filename} { };
 
-  Cursor search(const unsigned);
-  std::pair<Cursor,Cursor> search(const unsigned int, const unsigned int);
+  Cursor search(const int);
+  std::pair<Cursor,Cursor> search(const int, const int);
 };
 
 #endif // DATABASE_H
