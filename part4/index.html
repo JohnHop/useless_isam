@@ -371,7 +371,7 @@ if(start_i == -1) {
 </code></pre>
 <p>returns a range of records.</p>
 <h2 id="back-to-the-statement-class">Back to the Statement class</h2>
-<p>Last step is to implement <code>std::vector&lt;Record&gt; Statement::execute(Database&amp; database)</code>. We store the result in a <code>std::vector</code> class: if no records are found, then we get an empty vector.<br>
+<p>Last step is to implement <code>std::vector&lt;Record&gt; Statement::execute(Database&amp; database)</code> in <a href="https://github.com/JohnHop/useless_isam/blob/main/statement.cpp">statement.cpp</a>. We store the result in a <code>std::vector</code> class: if no records are found, then we get an empty vector.<br>
 First</p>
 <pre><code class="language-C++">if(statement_type == Type::SELECT_SINGLE) {
   Cursor res = database.search(start_id);
@@ -379,14 +379,14 @@ First</p>
   return (res) ? std::vector{*res.record} : std::vector&lt;Record&gt;(0);
 }
 </code></pre>
-<p>quite easy. For range selections instead </p>
+<p>quite self-explanatory. For range selections instead </p>
 <pre><code class="language-C++">auto range = database.search(start_id, end_id);
 
 if(!range.first) {  //se non trovato
   return std::vector&lt;Record&gt;(0);
 }
 </code></pre>
-<p>no criptic expressions untile here. Next, if there are some results</p>
+<p>no criptic expressions until here. Next, if there are some results</p>
 <pre><code class="language-C++">std::vector&lt;Record&gt; results(range.first.diff(range.second) + 1);
 </code></pre>
 <p>then constructs a vector with the number of records found</p>
@@ -399,7 +399,7 @@ results[i] = *range.first.record;
 
 return results;
 </code></pre>
-<p>then put each record inside the vector.</p>
+<p>this put each record inside the vector.</p>
 <div class="footnote">
 <hr />
 <ol>
