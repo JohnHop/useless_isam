@@ -365,7 +365,7 @@ returns a range of records.
 
 ## Back to the Statement class
 
-Last step is to implement `std::vector<Record> Statement::execute(Database& database)`. We store the result in a `std::vector` class: if no records are found, then we get an empty vector.<br>
+Last step is to implement `std::vector<Record> Statement::execute(Database& database)` in [statement.cpp](https://github.com/JohnHop/useless_isam/blob/main/statement.cpp). We store the result in a `std::vector` class: if no records are found, then we get an empty vector.<br>
 First
 
 ```C++
@@ -376,7 +376,7 @@ if(statement_type == Type::SELECT_SINGLE) {
 }
 ```
 
-quite easy. For range selections instead 
+quite self-explanatory. For range selections instead 
 
 ```C++
 auto range = database.search(start_id, end_id);
@@ -386,7 +386,7 @@ if(!range.first) {  //se non trovato
 }
 ```
 
-no criptic expressions untile here. Next, if there are some results
+no criptic expressions until here. Next, if there are some results
 
 ```C++
 std::vector<Record> results(range.first.diff(range.second) + 1);
@@ -405,7 +405,7 @@ results[i] = *range.first.record;
 return results;
 ```
 
-then put each record inside the vector.
+this put each record inside the vector.
 
 [^1]: Bjarne Stroustrup. The C++ Programming Language. §10.2.1
 [^2]: <https://cstack.github.io/db_tutorial/parts/part1.html>
