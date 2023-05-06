@@ -4,7 +4,7 @@ This is a simple pet-project about a easy-understable minimal ISAM database.
 
 It is composed by three separate executables.
 
-If you are curious how is made I wrote a tutorial on how I made it. Check it on GitHub Pages: https://johnhop.github.io/useless_isam/
+If you are curious how is made I wrote a tutorial about it. Check it on GitHub Pages: https://johnhop.github.io/useless_isam/
 
 ## csv2bin
 
